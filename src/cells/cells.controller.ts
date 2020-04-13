@@ -1,10 +1,15 @@
 import { Controller, Get, Post, Param } from '@nestjs/common';
+import { Observable, of } from 'rxjs';
 
 @Controller('cells')
 export class CellsController {
   @Get()
-  findAll(): string {
-    return 'return all cells'
+  async findAll(): Promise<any[]> {
+    return ['aaa', 'bbb']
+  }
+  @Get('/cd')
+  find(): Observable<any[]> {
+    return of(['c', 'd'])
   }
   @Post()
   create(): string {
