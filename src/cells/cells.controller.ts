@@ -2,7 +2,7 @@ import { Controller, Get, Post, Param, Body } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { CellsService } from './cells.service';
 import { Cell } from './interfaces/cell.interface';
-import { CreateCellDto } from './create-cell.dto';
+import { CreateCellDto } from './dto/create-cell.dto';
 
 @Controller('cells')
 export class CellsController {
