@@ -1,10 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 
 @Controller('cells')
 export class CellsController {
   @Get()
   findAll(): string {
     return 'return all cells'
+  }
+  @Post()
+  create(): string {
+    return 'create a cell'
   }
   @Get('one')
   findOne(): string {
