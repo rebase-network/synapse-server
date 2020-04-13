@@ -6,6 +6,6 @@ import { CellsService } from './cells.service';
   imports: [],
   controllers: [CellsController],
   providers: [CellsService],
+  exports: [CellsService],
 })
-
 export class CellsModule {}
