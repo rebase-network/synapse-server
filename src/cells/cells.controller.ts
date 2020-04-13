@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Param } from '@nestjs/common';
 
 @Controller('cells')
 export class CellsController {
@@ -10,8 +10,8 @@ export class CellsController {
   create(): string {
     return 'create a cell'
   }
-  @Get('one')
-  findOne(): string {
-    return 'return one cell'
+  @Get(':id')
+  findOne(@Param() params): string {
+    return `return one cell with id: ${params.id}`
   }
 }
