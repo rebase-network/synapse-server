@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseInterceptors } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { CellsService } from './cells.service';
 import { Cell } from './interfaces/cell.interface';
 import { CreateCellDto } from './dto/create-cell.dto';
+import { LoggingInterceptor } from '../logging.interceptor';
 
 @Controller('cells')
+@UseInterceptors(LoggingInterceptor)
 export class CellsController {
   constructor(private readonly cellsService: CellsService) {}
 
