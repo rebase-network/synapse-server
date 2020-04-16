@@ -41,6 +41,10 @@ yarn start:prod
 yarn typeorm:migration:generate
 ```
 
+## API test
+
+Go to `/api` to test api with swagger UI
+
 ## Test
 
 ```bash
