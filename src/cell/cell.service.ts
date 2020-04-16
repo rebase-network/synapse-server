@@ -12,7 +12,7 @@ export class CellService {
     return await this.repo.find();
   }
 
-  create(cell: Cell) {
-    // this.cells.push(cell);
+  public async create(cell: Cell): Promise<Cell> {
+    return await this.repo.create(cell)
   }
 }
