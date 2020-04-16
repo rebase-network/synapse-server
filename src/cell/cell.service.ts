@@ -13,6 +13,6 @@ export class CellService {
   }
 
   public async create(cell: Cell): Promise<Cell> {
-    return await this.repo.create(cell)
+    return await this.repo.save(cell)
   }
 }
