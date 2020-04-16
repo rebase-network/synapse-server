@@ -1,27 +1,30 @@
 import { Controller, Get, Post, Param, Body, UseInterceptors } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
-import { CellsService } from './cells.service';
+import { CellService } from './cell.service';
 import { Cell } from './interfaces/cell.interface';
 import { CreateCellDto } from './dto/create-cell.dto';
 import { LoggingInterceptor } from '../logging.interceptor';
 
-@Controller('cells')
+@Controller('cell')
 @UseInterceptors(LoggingInterceptor)
-export class CellsController {
-  constructor(private readonly cellsService: CellsService) {}
+export class CellController {
+  constructor(private readonly cellService: CellService) {}
 
   @Get()
-  async findAll(): Promise<Cell[]> {
-    return this.cellsService.findAll();
+  getAll() {
+    return this.cellService.getAll();
   }
+
   @Get('/cd')
   find(): Observable<any[]> {
     return of(['c', 'd'])
   }
+
   @Post()
   create(@Body() createCellDto: CreateCellDto) {
-    this.cellsService.create(createCellDto);
+    this.cellService.create(createCellDto);
   }
+
   @Get(':id')
   findOne(@Param() params): string {
     return `return one cell with id: ${params.id}`
