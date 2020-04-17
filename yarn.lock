@@ -489,6 +489,38 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
+"@nervosnetwork/ckb-sdk-core@^0.30.0":
+  version "0.30.0"
+  resolved "https://registry.npm.taobao.org/@nervosnetwork/ckb-sdk-core/download/@nervosnetwork/ckb-sdk-core-0.30.0.tgz#4a3fcfc446a71d700fa6dae83d3572ca48d4764f"
+  integrity sha1-Sj/PxEanHXAPptroPTVyykjUdk8=
+  dependencies:
+    "@nervosnetwork/ckb-sdk-rpc" "0.30.0"
+    "@nervosnetwork/ckb-sdk-utils" "0.30.0"
+    "@nervosnetwork/ckb-types" "0.30.0"
+
+"@nervosnetwork/ckb-sdk-rpc@0.30.0":
+  version "0.30.0"
+  resolved "https://registry.npm.taobao.org/@nervosnetwork/ckb-sdk-rpc/download/@nervosnetwork/ckb-sdk-rpc-0.30.0.tgz#68cfa1e2f73f9d7cc92d11791d8863aa6d42875c"
+  integrity sha1-aM+h4vc/nXzJLRF5HYhjqm1Ch1w=
+  dependencies:
+    "@nervosnetwork/ckb-sdk-utils" "0.30.0"
+    axios "0.19.0"
+
+"@nervosnetwork/ckb-sdk-utils@0.30.0":
+  version "0.30.0"
+  resolved "https://registry.npm.taobao.org/@nervosnetwork/ckb-sdk-utils/download/@nervosnetwork/ckb-sdk-utils-0.30.0.tgz#49e92419084b5f84780d15d3252d226960ebd553"
+  integrity sha1-SekkGQhLX4R4DRXTJS0iaWDr1VM=
+  dependencies:
+    "@nervosnetwork/ckb-types" "0.30.0"
+    blake2b-wasm "2.1.0"
+    elliptic "6.5.2"
+    jsbi "3.1.1"
+
+"@nervosnetwork/ckb-types@0.30.0":
+  version "0.30.0"
+  resolved "https://registry.npm.taobao.org/@nervosnetwork/ckb-types/download/@nervosnetwork/ckb-types-0.30.0.tgz#72ce9f49860f1503dc0ac1ac8dea731834bd8502"
+  integrity sha1-cs6fSYYPFQPcCsGsjepzGDS9hQI=
+
 "@nestcloud/core@^0.2.3":
   version "0.2.4"
   resolved "https://registry.npm.taobao.org/@nestcloud/core/download/@nestcloud/core-0.2.4.tgz#4848af409e0ea61df6ba263059e1cfe5900fab52"
@@ -1344,6 +1376,14 @@ aws4@^1.8.0:
   resolved "https://registry.npm.taobao.org/aws4/download/aws4-1.9.1.tgz?cache=0&sync_timestamp=1578958189607&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Faws4%2Fdownload%2Faws4-1.9.1.tgz#7e33d8f7d449b3f673cd72deb9abdc552dbe528e"
   integrity sha1-fjPY99RJs/ZzzXLeuavcVS2+Uo4=
 
+axios@0.19.0:
+  version "0.19.0"
+  resolved "https://registry.npm.taobao.org/axios/download/axios-0.19.0.tgz#8e09bff3d9122e133f7b8101c8fbdd00ed3d2ab8"
+  integrity sha1-jgm/89kSLhM/e4EByPvdAO09Krg=
+  dependencies:
+    follow-redirects "1.5.10"
+    is-buffer "^2.0.2"
+
 axios@0.19.2:
   version "0.19.2"
   resolved "https://registry.npm.taobao.org/axios/download/axios-0.19.2.tgz#3ea36c5d8818d0d5f8a8a97a6d36b86cdc00cb27"
@@ -1466,6 +1506,13 @@ bindings@^1.5.0:
   integrity sha1-EDU8npRTNLwFEabZCzj7x8nFBN8=
   dependencies:
     file-uri-to-path "1.0.0"
+
+blake2b-wasm@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.npm.taobao.org/blake2b-wasm/download/blake2b-wasm-2.1.0.tgz#aa90ed687b8a92e1c01d1643db86bcf21caa2ab7"
+  integrity sha1-qpDtaHuKkuHAHRZD24a88hyqKrc=
+  dependencies:
+    nanoassert "^1.0.0"
 
 bluebird@^3.5.5:
   version "3.7.2"
@@ -2486,7 +2533,7 @@ ee-first@1.1.1:
   resolved "https://registry.npm.taobao.org/ee-first/download/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
-elliptic@^6.0.0:
+elliptic@6.5.2, elliptic@^6.0.0:
   version "6.5.2"
   resolved "https://registry.npm.taobao.org/elliptic/download/elliptic-6.5.2.tgz#05c5678d7173c049d8ca433552224a495d0e3762"
   integrity sha1-BcVnjXFzwEnYykM1UiJKSV0ON2I=
@@ -3708,6 +3755,11 @@ is-buffer@^1.1.5:
   resolved "https://registry.npm.taobao.org/is-buffer/download/is-buffer-1.1.6.tgz?cache=0&sync_timestamp=1569905349018&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fis-buffer%2Fdownload%2Fis-buffer-1.1.6.tgz#efaa2ea9daa0d7ab2ea13a97b2b8ad51fefbe8be"
   integrity sha1-76ouqdqg16suoTqXsritUf776L4=
 
+is-buffer@^2.0.2:
+  version "2.0.4"
+  resolved "https://registry.npm.taobao.org/is-buffer/download/is-buffer-2.0.4.tgz#3e572f23c8411a5cfd9557c849e3665e0b290623"
+  integrity sha1-PlcvI8hBGlz9lVfISeNmXgspBiM=
+
 is-callable@^1.1.4, is-callable@^1.1.5:
   version "1.1.5"
   resolved "https://registry.npm.taobao.org/is-callable/download/is-callable-1.1.5.tgz#f7e46b596890456db74e7f6e976cb3273d06faab"
@@ -4367,6 +4419,11 @@ js-yaml@^3.13.1:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
+jsbi@3.1.1:
+  version "3.1.1"
+  resolved "https://registry.npm.taobao.org/jsbi/download/jsbi-3.1.1.tgz#8ea18b3e08d102c6cc09acaa9a099921d775f4fa"
+  integrity sha1-jqGLPgjRAsbMCayqmgmZIdd19Po=
+
 jsbn@~0.1.0:
   version "0.1.1"
   resolved "https://registry.npm.taobao.org/jsbn/download/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
@@ -4944,6 +5001,11 @@ nan@^2.12.1:
   version "2.14.0"
   resolved "https://registry.npm.taobao.org/nan/download/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha1-eBj3IgJ7JFmobwKV1DTR/CM2xSw=
+
+nanoassert@^1.0.0:
+  version "1.1.0"
+  resolved "https://registry.npm.taobao.org/nanoassert/download/nanoassert-1.1.0.tgz#4f3152e09540fde28c76f44b19bbcd1d5a42478d"
+  integrity sha1-TzFS4JVA/eKMdvRLGbvNHVpCR40=
 
 nanomatch@^1.2.9:
   version "1.2.13"
