@@ -9,10 +9,4 @@ export class BlockController {
   sync() {
     return this.blockService.sync();
   }
-
-  @Get('/handleInterval')
-  handleInterval() {
-    return this.blockService.handleInterval();
-  }
-
 }
