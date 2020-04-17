@@ -552,6 +552,14 @@
     multer "1.4.2"
     tslib "1.11.1"
 
+"@nestjs/schedule@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.npm.taobao.org/@nestjs/schedule/download/@nestjs/schedule-0.3.0.tgz#876ef9ec7677be5012eeefaf2749dad74e8694a8"
+  integrity sha1-h2757HZ3vlAS7u+vJ0na106GlKg=
+  dependencies:
+    cron "1.8.2"
+    uuid "7.0.2"
+
 "@nestjs/schematics@^7.0.0":
   version "7.0.0"
   resolved "https://registry.npm.taobao.org/@nestjs/schematics/download/@nestjs/schematics-7.0.0.tgz#7b48bdcd50dad430957b2c112d555a5147c2e60e"
@@ -2156,6 +2164,13 @@ create-hmac@^1.1.0, create-hmac@^1.1.2, create-hmac@^1.1.4:
     ripemd160 "^2.0.0"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
+
+cron@1.8.2:
+  version "1.8.2"
+  resolved "https://registry.npm.taobao.org/cron/download/cron-1.8.2.tgz#4ac5e3c55ba8c163d84f3407bde94632da8370ce"
+  integrity sha1-SsXjxVuowWPYTzQHvelGMtqDcM4=
+  dependencies:
+    moment-timezone "^0.5.x"
 
 cross-spawn@^6.0.0, cross-spawn@^6.0.5:
   version "6.0.5"
@@ -4847,6 +4862,18 @@ mkdirp@0.x, mkdirp@^0.5.1, mkdirp@^0.5.3:
   integrity sha1-2Rzv1i0UNsoPQWIOJRKI1CAJne8=
   dependencies:
     minimist "^1.2.5"
+
+moment-timezone@^0.5.x:
+  version "0.5.28"
+  resolved "https://registry.npm.taobao.org/moment-timezone/download/moment-timezone-0.5.28.tgz#f093d789d091ed7b055d82aa81a82467f72e4338"
+  integrity sha1-8JPXidCR7XsFXYKqgagkZ/cuQzg=
+  dependencies:
+    moment ">= 2.9.0"
+
+"moment@>= 2.9.0":
+  version "2.24.0"
+  resolved "https://registry.npm.taobao.org/moment/download/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
+  integrity sha1-DQVdU/UFKqZTyfbraLtdEr9cK1s=
 
 move-concurrently@^1.0.1:
   version "1.0.1"
