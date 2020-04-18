@@ -44,4 +44,43 @@ export class BlockService extends NestSchedule {
     this.syncStatRepo.save(block)
     return { block };
   }
+
+  /**
+   * get the last syncing block info
+   */
+  async getLastestBlock(): Promise<SyncStat> {
+    return await this.syncStatRepo.findOne();
+  }
+
+  /**
+   * get the latest block header on CKB chain
+   */
+  async getTipBlockHeader(): Promise<CKBComponents.BlockHeader> {
+    return await this.ckb.rpc.getTipHeader();
+  }
+
+  /**
+   * get block info with block height
+   * @param height block number
+   *
+   * @returns block info
+   */
+  async getBlockByNumber(height: number): Promise<CKBComponents.Block> {
+    const hexHeight = '0x' + height.toString(16);
+    return await this.ckb.rpc.getBlockByNumber(hexHeight);
+  }
+
+  /**
+   * get the best transaction fee rate currently.
+   */
+  async getFeeRate(): Promise<CKBComponents.FeeRate> {
+    let feeRate: CKBComponents.FeeRate = { feeRate: '1000' };
+    try {
+      feeRate = await this.ckb.rpc.estimateFeeRate('0x3');
+    } catch (err) {
+      // this.logger.error('estimateFeeRate error', err, BlockService.name);
+      console.error('estimateFeeRate error', err, BlockService.name);
+    }
+    return feeRate;
+  }
 }
