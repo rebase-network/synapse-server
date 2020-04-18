@@ -15,6 +15,14 @@ class ConfigService {
     return value;
   }
 
+  public get(key: string): string {
+    return this.getValue(key, true);
+  }
+
+  get CKB_RPC_ENDPOINT(): string {
+    return this.env.CKB_RPC_ENDPOINT || 'http://127.0.0.1:8114';
+  }
+
   public ensureValues(keys: string[]) {
     keys.forEach(k => this.getValue(k, true));
     return this;
