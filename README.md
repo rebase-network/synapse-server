@@ -15,8 +15,8 @@ yarn
 ```bash
 # database
 yarn start:dev:db
-yarn typeorm:migration:run
-yarn start:dev:db:seed
+yarn db:mig:r
+yarn db:seed
 
 # env
 cp .env.example .env
@@ -38,7 +38,7 @@ yarn start:prod
 
 ```bash
 # generate migration
-yarn typeorm:migration:generate
+yarn db:mig:g
 ```
 
 ## API test
