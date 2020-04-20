@@ -1,17 +1,22 @@
-import { Entity, Column } from 'typeorm';
-import { BaseEntity } from './base.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'cell' })
-export class Cell extends BaseEntity {
-  @Column({ type: 'integer' })
+export class Cell {
+  @PrimaryGeneratedColumn('increment')
+  id: number;
+
+  @Column({ type: 'bigint' })
   capacity: number;
 
   @Column({ type: 'varchar' })
-  lock: string;
+  address: string;
 
   @Column({ type: 'varchar' })
-  type: string;
+  txHash: string;
 
   @Column({ type: 'varchar' })
-  data: string;
+  index: string;
+
+  @Column({ type: 'boolean' })
+  isLive: boolean;
 }
