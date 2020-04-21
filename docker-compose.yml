@@ -1,0 +1,29 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: post123
+      POSTGRES_DB: ckb
+      PGDATA: /data/postgres
+    volumes:
+       - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
+
+  # docker-compose up
+  # https://github.com/khezen/compose-postgres/blob/master/docker-compose.yml
+  # pgcli -h 127.0.0.1 -p 5432 -U postgres
