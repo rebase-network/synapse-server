@@ -1,5 +1,5 @@
 /// <reference types="@nervosnetwork/ckb-types" />
-import { AddressType, bech32Address, AddressPrefix, } from '@nervosnetwork/ckb-sdk-utils';
+import { bech32Address } from '@nervosnetwork/ckb-sdk-utils';
 import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
 import { Repository } from 'typeorm';
@@ -8,7 +8,6 @@ import { Block } from '../model/block.entity';
 import { SyncStat } from '../model/syncstat.entity';
 import { Cell } from '../model/cell.entity';
 import { CkbService } from '../ckb/ckb.service';
-import { EMPTY_HASH } from '../util/constant';
 import { bigintStrToNum } from '../util/number'
 
 @Injectable()
@@ -41,10 +40,10 @@ export class BlockService extends NestSchedule {
     if (tipNumSynced >= tipNum || this.isSyncing) return;
 
     this.isSyncing = true;
-    console.log(tipNumSynced, tipNum, typeof tipNumSynced, typeof tipNum, '========')
+
+    console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
     for (let i = tipNumSynced+1; i <= tipNum; i++) {
-      console.log('for loop: ', i)
-      this.updateCells(i)
+      await this.updateCells(i)
     }
 
     await this.updateTip(tipNum);
@@ -58,28 +57,14 @@ export class BlockService extends NestSchedule {
    * @param height block number
    */
   async updateCells(height: number) {
-    console.log('updateCells: ', height);
-
     // compare and save cells into db, from block[tipNumSynced] to block[tipNum]
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
 
-    console.log('block: ', block);
-    console.log('block: ', block.transactions.map(item => JSON.stringify(item)));
-    // Cell: {
-    //   id: number;
-    //   isLive: boolean;
-    //   capacity: bigint;
-    //   address: string;
-    //   txHash: string;
-    // }
-    const cellsInput = []
-    const cellsOutput = []
     block.transactions.forEach(tx => {
       tx.inputs.forEach(async input => {
-        // kill cell
-        // txHash, index
+        // kill cell(update cell isLive flag)
         const oldCellObj = {
           isLive: true,
           txHash: input.previousOutput.txHash,
@@ -94,23 +79,18 @@ export class BlockService extends NestSchedule {
         }
       })
       tx.outputs.forEach(async (output, index) => {
-        // born cell
+        // new cell
         const newCell: Cell = new Cell();
         Object.assign(newCell, {
           isLive: true,
           capacity: bigintStrToNum(output.capacity),
           address: bech32Address(output.lock.args),
           txHash: tx.hash,
-          index: index.toString(16)
+          index: `0x${index.toString(16)}`
         });
-        console.log('newCell: ', newCell)
         await this.cellRepo.save(newCell);
       })
     })
-
-    return [
-
-    ]
   }
 
 
@@ -120,7 +100,7 @@ export class BlockService extends NestSchedule {
    */
   async updateTip(tip: number): Promise<any> {
     let block = await this.syncStatRepo.findOne();
-    console.log('syncstat info: ', block)
+    console.log('Syncing height: ', block.tip)
     if (block) {
       block.tip = tip;
     } else {
