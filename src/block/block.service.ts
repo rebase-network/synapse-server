@@ -30,22 +30,26 @@ export class BlockService extends NestSchedule {
    */
   @Interval(5000)
   async sync() {
-    const header = await this.ckb.rpc.getTipHeader();
-    console.log(new Date(Date.now()), 'header: ', header)
-    const tipNum = parseInt(header.number, 16);
-
+    // const header = await this.ckb.rpc.getTipHeader();
+    const tipNumStr = await this.ckb.rpc.getTipBlockNumber();
+    const tipNum = parseInt(tipNumStr, 16);
     // get current synced height from db: syncedBlockNum
     const syncStat = await this.syncStatRepo.findOne();
-    const syncedBlockNum = syncStat ? syncStat.tip : 0;
+    const tipNumSynced = syncStat ? Number(syncStat.tip) : 0;
 
-    // compare and save cells into db
-    const cells = await this.getCellFromBlock(124145)
-    for (let i = syncedBlockNum; i <= tipNum; i++) {
-      // await this.cellRepo.save(cells)
+    // Already the newest, do not need to sync
+    if (tipNumSynced >= tipNum || this.isSyncing) return;
+
+    this.isSyncing = true;
+    console.log(tipNumSynced, tipNum, typeof tipNumSynced, typeof tipNum, '========')
+    for (let i = tipNumSynced+1; i <= tipNum; i++) {
+      console.log('for loop: ', i)
+      this.updateCells(i)
     }
+
     await this.updateTip(tipNum);
     // syncing flag true
-    this.isSyncing = true;
+    this.isSyncing = false;
   }
 
 
@@ -53,7 +57,10 @@ export class BlockService extends NestSchedule {
    * fetch the specified block from CKB chain, extract data and then update database
    * @param height block number
    */
-  async getCellFromBlock(height: number) {
+  async updateCells(height: number) {
+    console.log('updateCells: ', height);
+
+    // compare and save cells into db, from block[tipNumSynced] to block[tipNum]
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
@@ -73,11 +80,12 @@ export class BlockService extends NestSchedule {
       tx.inputs.forEach(async input => {
         // kill cell
         // txHash, index
-        const oldCell = await this.cellRepo.findOne({
+        const oldCellObj = {
           isLive: true,
           txHash: input.previousOutput.txHash,
           index: input.previousOutput.index
-        });
+        }
+        const oldCell: Cell = await this.cellRepo.findOne(oldCellObj);
         if(oldCell) {
           Object.assign(oldCell, {
             isLive: false,
@@ -96,7 +104,7 @@ export class BlockService extends NestSchedule {
           index: index.toString(16)
         });
         console.log('newCell: ', newCell)
-        // await this.cellRepo.save(newCell);
+        await this.cellRepo.save(newCell);
       })
     })
 
@@ -112,7 +120,7 @@ export class BlockService extends NestSchedule {
    */
   async updateTip(tip: number): Promise<any> {
     let block = await this.syncStatRepo.findOne();
-    console.log('block: ', block)
+    console.log('syncstat info: ', block)
     if (block) {
       block.tip = tip;
     } else {
