@@ -100,13 +100,13 @@ export class BlockService extends NestSchedule {
    */
   async updateTip(tip: number): Promise<any> {
     let block = await this.syncStatRepo.findOne();
-    console.log('Syncing height: ', block.tip)
     if (block) {
       block.tip = tip;
     } else {
       block = this.syncStatRepo.create({ tip })
     }
     this.syncStatRepo.save(block)
+    console.log('Height updated to: ', tip)
     return { block };
   }
 
