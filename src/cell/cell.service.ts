@@ -8,8 +8,20 @@ import { Cell } from './interfaces/cell.interface';
 export class CellService {
   constructor(@InjectRepository(CellEntity) private readonly repo: Repository<CellEntity>) { }
 
-  public async getAll() {
-    return await this.repo.find();
+  public async getBalanceByAddress(address: string): Promise<number> {
+    const queryObj = {
+      address,
+      isLive: true,
+    }
+    const liveCells = await this.repo.find(queryObj);
+
+    if (liveCells.length === 0) return 0;
+
+    const result = liveCells.reduce((pre, cur, index, arr) => {
+      return pre + Number(cur.capacity)
+    }, 0)
+
+    return result;
   }
 
   public async create(cell: Cell): Promise<Cell> {
