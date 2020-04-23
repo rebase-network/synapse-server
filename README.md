@@ -58,7 +58,7 @@ yarn test:e2e
 yarn test:cov
 ```
 ## docker-compose
-Go inside of directory, cd compose-postgres
+Go inside of directory, cd /
 Run this command docker-compose up -d
 
 ## License
