@@ -57,6 +57,9 @@ yarn test:e2e
 # test coverage
 yarn test:cov
 ```
+## docker-compose
+Go inside of directory, cd compose-postgres
+Run this command docker-compose up -d
 
 ## License
 
