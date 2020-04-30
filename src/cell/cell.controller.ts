@@ -7,6 +7,11 @@ import { LoggingInterceptor } from '../logging.interceptor';
 export class CellController {
   constructor(private readonly cellService: CellService) {}
 
+  @Get('getBalanceByPubkeyHash/:pubkeyHash')
+  async getBalanceByPubkeyHash(@Param('pubkeyHash') pubkeyHash: string): Promise<number> {
+    return await this.cellService.getBalanceByPubkeyHash(pubkeyHash)
+  }
+
   @Get('getBalanceByAddress/:address')
   async getBalanceByAddress(@Param('address') address: string): Promise<number> {
     return await this.cellService.getBalanceByAddress(address)
