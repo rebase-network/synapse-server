@@ -24,6 +24,6 @@ networks:
 volumes:
   postgres:
 
-  # docker-compose up
+  # docker-compose up --force-recreate
   # https://github.com/khezen/compose-postgres/blob/master/docker-compose.yml
   # pgcli -h 127.0.0.1 -p 5432 -U postgres

@@ -23,6 +23,10 @@ class ConfigService {
     return this.env.CKB_RPC_ENDPOINT || 'http://127.0.0.1:8114';
   }
 
+  get CKB_INDEXER_RPC_ENDPOINT(): string {
+    return this.env.CKB_INDEXER_RPC_ENDPOINT || 'http://127.0.0.1:8117/indexer';
+  }
+
   public ensureValues(keys: string[]) {
     keys.forEach(k => this.getValue(k, true));
     return this;

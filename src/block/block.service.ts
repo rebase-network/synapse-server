@@ -27,7 +27,7 @@ export class BlockService extends NestSchedule {
   /**
    * sync blocks from blockchain
    */
-  @Interval(5000)
+  // @Interval(5000)
   async sync() {
     // const header = await this.ckb.rpc.getTipHeader();
     const tipNumStr = await this.ckb.rpc.getTipBlockNumber();

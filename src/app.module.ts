@@ -11,7 +11,7 @@ import { CkbModule } from './ckb/ckb.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
-    ScheduleModule.register(),
+    // ScheduleModule.register(),
     BlockModule,
     CellModule,
     CkbModule
