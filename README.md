@@ -14,6 +14,7 @@ yarn
 
 ```bash
 # database
+yarn pretypeorm
 yarn start:dev:db
 yarn db:mig:r
 yarn db:seed
