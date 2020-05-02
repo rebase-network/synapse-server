@@ -8,25 +8,28 @@ import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 export class CellController {
   constructor(private readonly cellService: CellService) {}
 
-  @Get('getBalanceByPubkeyHash/:pubkeyHash')
-  async getBalanceByPubkeyHash(@Param('pubkeyHash') pubkeyHash: string): Promise<number> {
+  @Get('getBalanceByAddress/:address')
+  async getBalanceByAddress(@Param('address') address: string): Promise<number> {
+    const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
+    const pubkeyHash = "0x" + parsedHex.toString().slice(6) // blake160
+
     return await this.cellService.getBalanceByPubkeyHash(pubkeyHash)
   }
 
-  @Get('getBalanceByAddress/:address')
-  async getBalanceByAddress(@Param('address') address: string): Promise<number> {
-    return await this.cellService.getBalanceByAddress(address)
-  }
+  // @Get('getBalanceByAddress/:address')
+  // async getBalanceByAddress(@Param('address') address: string): Promise<number> {
+  //   return await this.cellService.getBalanceByAddress(address)
+  // }
 
-  @Get('getTxByTxHash/:txHash')
-  async getTxByTxHash(@Param('txHash') txHash: string): Promise <any> {
-    return await this.cellService.getTxByTxHash(txHash)
-  }
+  // @Get('getTxByTxHash/:txHash')
+  // async getTxByTxHash(@Param('txHash') txHash: string): Promise <any> {
+  //   return await this.cellService.getTxByTxHash(txHash)
+  // }
 
-  @Get('getHeaderByNum/:hexNum')
-  async getHeaderByNum(@Param('hexNum') hexNum: string): Promise <any> {
-    return await this.cellService.getHeaderByNum(hexNum)
-  }
+  // @Get('getHeaderByNum/:hexNum')
+  // async getHeaderByNum(@Param('hexNum') hexNum: string): Promise <any> {
+  //   return await this.cellService.getHeaderByNum(hexNum)
+  // }
 
   @Get('getTxsByAddress/:address')
   async getTxsByPubkeyHash(@Param('address') address: string): Promise <any> {
