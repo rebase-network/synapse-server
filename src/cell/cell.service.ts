@@ -10,9 +10,9 @@ import { configService } from '../config/config.service';
 
 @Injectable()
 export class CellService {
-  constructor(@InjectRepository(CellEntity) private readonly repo: Repository <CellEntity> ,
+  constructor(@InjectRepository(CellEntity) private readonly repo: Repository<CellEntity>,
     private readonly httpService: HttpService
-  ) {}
+  ) { }
 
   public getBalanceByPubkeyHash(pubkeyHash: string): Promise<number> {
 
@@ -21,13 +21,13 @@ export class CellService {
       "jsonrpc": "2.0",
       "method": "get_cells",
       "params": [{
-          "script": {
-            "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-            "hash_type": "type",
-            "args": pubkeyHash
-          },
-          "script_type": "lock"
+        "script": {
+          "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hash_type": "type",
+          "args": pubkeyHash
         },
+        "script_type": "lock"
+      },
         "desc",
         "0x200" // 512
       ]
@@ -91,13 +91,13 @@ export class CellService {
       "jsonrpc": "2.0",
       "method": "get_transactions",
       "params": [{
-          "script": {
-            "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-            "hash_type": "type",
-            "args": pubkeyHash
-          },
-          "script_type": "lock"
+        "script": {
+          "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hash_type": "type",
+          "args": pubkeyHash
         },
+        "script_type": "lock"
+      },
         "desc", // 倒叙排列，最近的16条交易记录
         "0xf" // 16
       ]
@@ -186,6 +186,8 @@ export class CellService {
 
     return observable.pipe(map(resp => {
       const result = resp.data.result
+
+      if (result == null) return null
       const tx = result.transaction
       return tx;
 

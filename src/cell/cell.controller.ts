@@ -6,7 +6,7 @@ import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 @Controller('cell')
 @UseInterceptors(LoggingInterceptor)
 export class CellController {
-  constructor(private readonly cellService: CellService) {}
+  constructor(private readonly cellService: CellService) { }
 
   @Get('getBalanceByAddress/:address')
   async getBalanceByAddress(@Param('address') address: string): Promise<number> {
@@ -32,7 +32,7 @@ export class CellController {
   // }
 
   @Get('getTxsByAddress/:address')
-  async getTxsByPubkeyHash(@Param('address') address: string): Promise <any> {
+  async getTxsByPubkeyHash(@Param('address') address: string): Promise<any> {
     const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
     const pubkeyHash = "0x" + parsedHex.toString().slice(6)
 
@@ -67,15 +67,22 @@ export class CellController {
       for (const input of inputs) {
         let newInput = {}
         const bef_tx_hash = input.previous_output.tx_hash
-        const bef_index = input.previous_output.index
 
-        const inputTxObj = await this.cellService.getTxByTxHash(bef_tx_hash)
-        const _output = inputTxObj.outputs[parseInt(bef_index, 16)]
+        // cellbase
+        if (bef_tx_hash !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
 
-        newInput['capacity'] = parseInt(_output.capacity, 16)
-        newInput['address'] = ckbUtils.bech32Address(_output.lock.args, opts)
+          // 0x000......00000 是出块奖励，inputs为空，cellbase
+          const bef_index = input.previous_output.index
 
-        newInputs.push(newInput)
+          const inputTxObj = await this.cellService.getTxByTxHash(bef_tx_hash)
+          const _output = inputTxObj.outputs[parseInt(bef_index, 16)]
+
+          newInput['capacity'] = parseInt(_output.capacity, 16)
+          newInput['address'] = ckbUtils.bech32Address(_output.lock.args, opts)
+
+          newInputs.push(newInput)
+        }
+
       }
 
       newTx['inputs'] = newInputs
