@@ -6,6 +6,16 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const options = {
+    "origin": "*",
+    "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+    "preflightContinue": false,
+    "optionsSuccessStatus": 200,
+    "credentials": false,
+  }
+
+  app.enableCors(options)
+
   if (!configService.isProduction()) {
     const options = new DocumentBuilder()
       .setTitle('Synapse Server APIs')
