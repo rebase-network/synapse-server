@@ -68,6 +68,9 @@ export class CellService {
   }
 
   public getTxsByPubkeyHash(pubkeyHash: string): Promise<any> {
+    // https://explorer.nervos.org/aggron/transaction/0x42954c09bdf78338e480376ab2b08feeb56a10abd78fbe568beeae10a219361d
+    // ckb-indexer 没有去重
+
     /*
       [{
           "block_number": "0x2b890",

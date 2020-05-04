@@ -32,7 +32,7 @@ export class CellController {
   // }
 
   @Get('getTxsByAddress/:address')
-  async getTxsByPubkeyHash(@Param('address') address: string): Promise<any> {
+  async getTxsByAddress(@Param('address') address: string): Promise<any> {
     const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
     const pubkeyHash = "0x" + parsedHex.toString().slice(6)
 
