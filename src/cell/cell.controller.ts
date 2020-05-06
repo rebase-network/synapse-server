@@ -31,8 +31,8 @@ export class CellController {
   //   return await this.cellService.getHeaderByNum(hexNum)
   // }
 
-  @Get('getTxsByAddress/:address')
-  async getTxsByAddress(@Param('address') address: string): Promise<any> {
+  @Get('getTxHistoryByAddress/:address')
+  async getTxHistoryByAddress(@Param('address') address: string): Promise<any> {
     const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
     const pubkeyHash = "0x" + parsedHex.toString().slice(6)
 
