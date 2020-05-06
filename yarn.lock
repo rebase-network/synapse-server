@@ -516,7 +516,17 @@
     elliptic "6.5.2"
     jsbi "3.1.1"
 
-"@nervosnetwork/ckb-types@0.30.0":
+"@nervosnetwork/ckb-sdk-utils@^0.31.0":
+  version "0.31.0"
+  resolved "https://registry.npm.taobao.org/@nervosnetwork/ckb-sdk-utils/download/@nervosnetwork/ckb-sdk-utils-0.31.0.tgz#41ddb41d96354f187e43e9f73fe22f4f050470b0"
+  integrity sha1-Qd20HZY1Txh+Q+n3P+IvTwUEcLA=
+  dependencies:
+    "@nervosnetwork/ckb-types" "0.31.0"
+    blake2b-wasm "2.1.0"
+    elliptic "6.5.2"
+    jsbi "3.1.2"
+
+"@nervosnetwork/ckb-types@0.30.0", "@nervosnetwork/ckb-types@0.31.0":
   version "0.30.0"
   resolved "https://registry.npm.taobao.org/@nervosnetwork/ckb-types/download/@nervosnetwork/ckb-types-0.30.0.tgz#72ce9f49860f1503dc0ac1ac8dea731834bd8502"
   integrity sha1-cs6fSYYPFQPcCsGsjepzGDS9hQI=
@@ -4423,6 +4433,11 @@ jsbi@3.1.1:
   version "3.1.1"
   resolved "https://registry.npm.taobao.org/jsbi/download/jsbi-3.1.1.tgz#8ea18b3e08d102c6cc09acaa9a099921d775f4fa"
   integrity sha1-jqGLPgjRAsbMCayqmgmZIdd19Po=
+
+jsbi@3.1.2:
+  version "3.1.2"
+  resolved "https://registry.npm.taobao.org/jsbi/download/jsbi-3.1.2.tgz#7502ed36fb2b32bb37efb3d2d0b3806a0d771780"
+  integrity sha1-dQLtNvsrMrs377PS0LOAag13F4A=
 
 jsbn@~0.1.0:
   version "0.1.1"
