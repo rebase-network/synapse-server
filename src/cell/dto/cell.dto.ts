@@ -1,56 +1,62 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, } from 'class-validator';
+import { IsString, IsNumber, IsBoolean } from 'class-validator';
 import { Cell } from '../../model/cell.entity';
 
 export class CellDTO implements Readonly<CellDTO> {
   @ApiProperty({ required: true })
-  @IsUUID()
-  id: string;
+  @IsNumber()
+  id: number;
 
   @ApiProperty({ required: true })
-  @IsString()
+  @IsNumber()
   capacity: number;
 
   @ApiProperty({ required: false })
   @IsString()
-  data: string;
+  address: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  txHash: string;
 
   @ApiProperty({ required: true })
   @IsString()
-  lock: string;
+  index: string;
 
   @ApiProperty({ required: true })
-  @IsString()
-  type: string;
+  @IsBoolean()
+  isLive: boolean;
 
   public static from(dto: Partial<CellDTO>) {
     const it = new CellDTO();
     it.id = dto.id;
-    it.data = dto.data;
-    it.lock = dto.lock;
-    it.type = dto.type;
+    it.address = dto.address;
     it.capacity = dto.capacity;
+    it.txHash = dto.txHash;
+    it.index = dto.index;
+    it.isLive = dto.isLive;
     return it;
   }
 
   public static fromEntity(entity: Cell) {
     return this.from({
       id: entity.id,
-      data: entity.data,
-      lock: entity.lock,
-      type: entity.type,
-      capacity: entity.capacity
+      address: entity.address,
+      capacity: entity.capacity,
+      txHash: entity.txHash,
+      index: entity.index,
+      isLive: entity.isLive,
     });
   }
 
   public toEntity() {
     const it = new Cell();
     it.id = this.id;
-    it.data = this.data;
-    it.lock = this.lock;
-    it.type = this.type;
+    it.address = this.address;
     it.capacity = this.capacity;
-    it.createDateTime = new Date();
+    it.txHash = this.txHash;
+    it.index = this.index;
+    it.isLive = this.isLive;
     return it;
   }
 }
