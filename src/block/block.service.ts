@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Block } from '../model/block.entity';
 import { SyncStat } from '../model/syncstat.entity';
 import { Cell } from '../model/cell.entity';
+import { Address } from '../model/address.entity';
 import { CkbService } from '../ckb/ckb.service';
 import { bigintStrToNum } from '../util/number'
 
@@ -16,6 +17,7 @@ export class BlockService extends NestSchedule {
     @InjectRepository(Block) private readonly blockRepo: Repository<Block>,
     @InjectRepository(SyncStat) private readonly syncStatRepo: Repository<SyncStat>,
     @InjectRepository(Cell) private readonly cellRepo: Repository<Cell>,
+    @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
     private readonly ckbService: CkbService
   ) {
     super();
@@ -27,7 +29,7 @@ export class BlockService extends NestSchedule {
   /**
    * sync blocks from blockchain
    */
-  // @Interval(5000)
+  @Interval(5000)
   async sync() {
     // const header = await this.ckb.rpc.getTipHeader();
     const tipNumStr = await this.ckb.rpc.getTipBlockNumber();
@@ -43,6 +45,7 @@ export class BlockService extends NestSchedule {
 
     console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
     for (let i = tipNumSynced+1; i <= tipNum; i++) {
+      await this.updateCells(i)
       await this.updateCells(i)
     }
 
@@ -62,6 +65,9 @@ export class BlockService extends NestSchedule {
       '0x' + height.toString(16),
     );
 
+    // update address balance
+    const addressesBalance = {}
+
     block.transactions.forEach(tx => {
       tx.inputs.forEach(async input => {
         // kill cell(update cell isLive flag)
@@ -77,6 +83,9 @@ export class BlockService extends NestSchedule {
           });
           await this.cellRepo.save(oldCell);
         }
+        if (oldCell) {
+          addressesBalance[oldCell.address] -= oldCell.capacity;
+        }
       })
       tx.outputs.forEach(async (output, index) => {
         // new cell
@@ -88,9 +97,32 @@ export class BlockService extends NestSchedule {
           txHash: tx.hash,
           index: `0x${index.toString(16)}`
         });
+        addressesBalance[newCell.address] += newCell.capacity;
+
         await this.cellRepo.save(newCell);
       })
     })
+    Object.keys(addressesBalance).forEach(async address => {
+      const addr: Address = await this.addressRepo.findOne({ address });
+      if (!addr) {
+        // addr = {
+        //   address,
+        //   lockHash: '',
+        //   pubKeyHash: '',
+        //   liveCellCount: 0,
+        //   txCount: 0,
+        //   balance: addressesBalance[address]
+        // }
+        addr.address = address;
+        addr.lockHash = '';
+        addr.pubKeyHash = '';
+        addr.liveCellCount = 0;
+        addr.txCount = 0;
+        addr.balance = addressesBalance[address];
+      }
+      addr.balance = addressesBalance[address]
+      await this.addressRepo.save(addr)
+    });
   }
 
 

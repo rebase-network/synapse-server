@@ -7,14 +7,16 @@ import { configService } from './config/config.service';
 import { BlockModule } from './block/block.module';
 import { CellModule } from './cell/cell.module';
 import { CkbModule } from './ckb/ckb.module';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
-    // ScheduleModule.register(),
+    ScheduleModule.register(),
     BlockModule,
     CellModule,
-    CkbModule
+    CkbModule,
+    AddressModule
   ],
   controllers: [AppController],
   providers: [AppService],
