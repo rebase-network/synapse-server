@@ -1,7 +1,5 @@
 import { Injectable, HttpService } from '@nestjs/common';
-import { Observable, } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AxiosResponse } from 'axios';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cell as CellEntity } from '../model/cell.entity';
@@ -10,7 +8,8 @@ import { configService } from '../config/config.service';
 
 @Injectable()
 export class CellService {
-  constructor(@InjectRepository(CellEntity) private readonly repo: Repository<CellEntity>,
+  constructor(
+    @InjectRepository(CellEntity) private readonly repo: Repository<CellEntity>,
     private readonly httpService: HttpService
   ) { }
 
