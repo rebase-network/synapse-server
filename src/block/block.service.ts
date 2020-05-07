@@ -10,7 +10,7 @@ import { Cell } from '../model/cell.entity';
 import { Address } from '../model/address.entity';
 import { CkbService } from '../ckb/ckb.service';
 import { bigintStrToNum } from '../util/number';
-import { EMPTY_HASH } from '../util/constant';
+import { EMPTY_TX_HASH } from '../util/constant';
 
 @Injectable()
 export class BlockService extends NestSchedule {
@@ -99,7 +99,7 @@ export class BlockService extends NestSchedule {
     // }
     let addressesBalance: AddressesBalance = await tx.inputs.reduce(async (pre, input, index, arr) => {
       console.log(' ============= txHash: ', input.previousOutput.txHash);
-      if (EMPTY_HASH === input.previousOutput.txHash) return pre;
+      if (EMPTY_TX_HASH === input.previousOutput.txHash) return pre;
       const oldCellObj = {
         isLive: true,
         txHash: input.previousOutput.txHash,
