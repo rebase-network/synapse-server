@@ -14,7 +14,7 @@ import { bigintStrToNum } from '../util/number';
 import { EMPTY_TX_HASH } from '../util/constant';
 
 type ReadableCell = {
-  "capacity": BigInt;
+  "capacity": bigint;
   "address": string;
 }
 type AddressesBalance = {
@@ -158,49 +158,49 @@ export class BlockService extends NestSchedule {
     await this.updateAddressBalance(readableTxs);
     })
   }
-  async getOriginalBalance(address): Promise<BigInt> {
-    const addr: Address = await this.addressRepo.findOne({ address: address });
-    if (!addr) throw new Error("No address found");
-    console.log('--------------- address: ', addr);
-    return addr.balance;
+  async getAddress(address: string): Promise<Address> {
+    return await this.addressRepo.findOne({ address: address });
+    // if (!addr) throw new Error("No address found");
+    // console.log('--------------- address: ', addr);
+    // return addr.balance;
   }
 
 
   async updateAddressBalance(txs) {
     // update address balance
     txs.forEach(async tx => {
-      let addressesBalance: AddressesBalance = await tx.inputs.reduce(async (pre, input: ReadableCell, index, arr) => {
-        // console.log(' ============= txHash: ', input.previousOutput.txHash);
-        // if (EMPTY_TX_HASH === input.previousOutput.txHash) return pre;
-        const originalBalance = await this.getOriginalBalance(input.address)
-        pre[input.address] = BigInt(originalBalance) - BigInt(input.capacity);
-        console.log(' 1111111111 pre: ', pre);
-        return pre;
-      }, {})
-      console.log(' 1111111111 addressesBalance: ', addressesBalance);
 
-      addressesBalance = await tx.outputs.reduce(async (pre, output: ReadableCell, index, arr) => {
-        const originalBalance = await this.getOriginalBalance(output.address);
-        pre[output.address] = BigInt(originalBalance) + BigInt(output.capacity);
+      let addressesBalance: AddressesBalance = await tx.outputs.reduce(async (pre, output: ReadableCell, index, arr) => {
+        let addr = await this.getAddress(output.address);
+        if (!addr) {
+          console.log(' ====== addr: ', addr)
+          addr = new Address()
+          addr.address = output.address;
+          addr.balance = output.capacity;
+          await this.addressRepo.save(addr);
+        }
+        pre[output.address] = BigInt(addr.balance) + BigInt(output.capacity);
         console.log(' 222222222222 pre: ', pre);
         return pre;
+      }, {})
+
+      addressesBalance = await tx.inputs.reduce(async (pre, input: ReadableCell, index, arr) => {
+        // console.log(' ============= txHash: ', input.previousOutput.txHash);
+        // if (EMPTY_TX_HASH === input.previousOutput.txHash) return pre;
+        const originalAddress = await this.getAddress(input.address)
+        pre[input.address] = BigInt(originalAddress.balance) - BigInt(input.capacity);
+        console.log(' 1111111111 pre: ', pre);
+        return pre;
       }, addressesBalance)
+      console.log(' 1111111111 addressesBalance: ', addressesBalance);
+
       console.log(' 222222222222 addressesBalance: ', addressesBalance);
 
 
       Object.keys(addressesBalance).forEach(async address => {
-        let addr: Address = await this.addressRepo.findOne({ address });
-        if (!addr) {
-          addr = new Address()
-          addr.address = address;
-          // addr.lockHash = '';
-          // addr.pubKeyHash = '';
-          // addr.liveCellCount = 0;
-          // addr.txCount = 0;
-          addr.balance = addressesBalance[address];
-        }
-        addr.balance = addressesBalance[address];
-        await this.addressRepo.save(addr);
+        // const addr: Address = await this.addressRepo.findOne({ address });
+        // addr.balance = addressesBalance[address];
+        await this.addressRepo.update({ address }, { balance: addressesBalance[address] });
       });
     });
   }
