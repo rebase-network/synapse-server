@@ -21,9 +21,9 @@ export class CellService {
       codeHashOrCodeHashIndex: '0x00',
     }
 
-    let newTxs = []
+    const newTxs = []
     for (const tx of txs) {
-      let newTx = {}
+      const newTx = {}
 
       newTx['hash'] = tx.tx_hash
       newTx['block_num'] = parseInt(tx.block_number, 16)
@@ -39,20 +39,20 @@ export class CellService {
       console.log("outputs num: ", outputs.length);
       console.log("inputs num: ", inputs.length);
 
-      let newInputs = []
+      const newInputs = []
 
       for (const input of inputs) {
-        let newInput = {}
-        const bef_tx_hash = input.previous_output.tx_hash
+        const newInput = {}
+        const befTxHash = input.previous_output.tx_hash
 
         // cellbase
-        if (bef_tx_hash !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
+        if (befTxHash !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
 
           // 0x000......00000 是出块奖励，inputs为空，cellbase
-          const bef_index = input.previous_output.index
+          const befIndex = input.previous_output.index
 
-          const inputTxObj = await this.getTxByTxHash(bef_tx_hash)
-          const _output = inputTxObj.outputs[parseInt(bef_index, 16)]
+          const inputTxObj = await this.getTxByTxHash(befTxHash)
+          const _output = inputTxObj.outputs[parseInt(befIndex, 16)]
 
           newInput['capacity'] = parseInt(_output.capacity, 16)
           newInput['address'] = ckbUtils.bech32Address(_output.lock.args, opts)
@@ -64,10 +64,10 @@ export class CellService {
 
       newTx['inputs'] = newInputs
 
-      let newOutputs = []
+      const newOutputs = []
 
       for (const output of outputs) {
-        let newOutput = {}
+        const newOutput = {}
         newOutput['capacity'] = parseInt(output.capacity, 16)
         newOutput['address'] = ckbUtils.bech32Address(output.lock.args, opts)
         newOutputs.push(newOutput)
