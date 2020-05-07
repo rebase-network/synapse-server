@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 import { Block } from '../model/block.entity';
 import { SyncStat } from '../model/syncstat.entity';
 import { Cell } from '../model/cell.entity';
@@ -26,6 +27,74 @@ export class BlockService extends NestSchedule {
 
   private readonly ckb = this.ckbService.getCKB();
   private isSyncing = false;
+
+
+  async parseBlockTxs(txs) {
+    const opts: ckbUtils.AddressOptions = {
+      prefix: ckbUtils.AddressPrefix.Testnet,
+      type: ckbUtils.AddressType.HashIdx,
+      codeHashOrCodeHashIndex: '0x00',
+    }
+
+    const newTxs = []
+    for (const tx of txs) {
+      const newTx = {}
+
+      newTx['hash'] = tx.tx_hash
+      newTx['block_num'] = parseInt(tx.block_number, 16)
+
+      const header = await this.ckb.rpc.getHeaderByNumber(tx.block_number)
+      // const txObj = await this.cellService.getTxByTxHash(tx.tx_hash)
+      const txObj = (await this.ckb.rpc.getTransaction(tx.tx_hash)).transaction
+
+      newTx['timestamp'] = parseInt(header.timestamp, 16)
+
+      const outputs = txObj.outputs
+      const inputs = txObj.inputs
+
+      console.log("outputs num: ", outputs.length);
+      console.log("inputs num: ", inputs.length);
+
+      const newInputs = []
+
+      for (const input of inputs) {
+        const newInput = {}
+        const befTxHash = input.previousOutput.txHash
+
+        // cellbase
+        if (befTxHash !== EMPTY_TX_HASH) {
+
+          // 0x000......00000 是出块奖励，inputs为空，cellbase
+          const befIndex = input.previousOutput.index
+
+          // const inputTxObj = await this.cellService.getTxByTxHash(befTxHash)
+          const inputTxObj = (await this.ckb.rpc.getTransaction(befTxHash)).transaction
+          const _output = inputTxObj.outputs[parseInt(befIndex, 16)]
+
+          newInput['capacity'] = parseInt(_output.capacity, 16)
+          newInput['address'] = ckbUtils.bech32Address(_output.lock.args, opts)
+
+          newInputs.push(newInput)
+        }
+      }
+
+      newTx['inputs'] = newInputs
+
+      const newOutputs = []
+
+      for (const output of outputs) {
+        const newOutput = {}
+        newOutput['capacity'] = parseInt(output.capacity, 16)
+        newOutput['address'] = ckbUtils.bech32Address(output.lock.args, opts)
+        newOutputs.push(newOutput)
+      }
+
+      newTx['outputs'] = newOutputs
+      newTxs.push(newTx)
+    }
+
+    return newTxs
+  }
 
   /**
    * sync blocks from blockchain
