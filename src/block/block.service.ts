@@ -9,7 +9,8 @@ import { SyncStat } from '../model/syncstat.entity';
 import { Cell } from '../model/cell.entity';
 import { Address } from '../model/address.entity';
 import { CkbService } from '../ckb/ckb.service';
-import { bigintStrToNum } from '../util/number'
+import { bigintStrToNum } from '../util/number';
+import { EMPTY_HASH } from '../util/constant';
 
 @Injectable()
 export class BlockService extends NestSchedule {
@@ -62,7 +63,7 @@ export class BlockService extends NestSchedule {
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
-
+    // const readableBlock =
     block.transactions.forEach(async tx => {
       tx.inputs.forEach(async input => {
         // kill cell(update cell isLive flag)
@@ -83,8 +84,22 @@ export class BlockService extends NestSchedule {
   }
 
   async updateAddressBalance(tx) {
+    // format block, formatted inputs and outputs
+    // handleCell: killCell(isLive = false), createCell(isLive = true)
+    // handleAddress:
+      // cell input => address.balance - cell.capacity;
+      // cell output => create address; address.balance + cell.capacity
+
     // update address balance
-    let addressesBalance = tx.inputs.reduce(async (pre, input, index, arr) => {
+    type AddressesBalance = {
+      string?: number;
+    }
+    // addressesBalance = {
+    //   ckt1qyqr79tnk3pp34xp92gerxjc4p3mus2690psf0dd70: 500000000000,
+    // }
+    let addressesBalance: AddressesBalance = await tx.inputs.reduce(async (pre, input, index, arr) => {
+      console.log(' ============= txHash: ', input.previousOutput.txHash);
+      if (EMPTY_HASH === input.previousOutput.txHash) return pre;
       const oldCellObj = {
         isLive: true,
         txHash: input.previousOutput.txHash,
@@ -100,7 +115,7 @@ export class BlockService extends NestSchedule {
     }, {})
     console.log(' 1111111111 addressesBalance: ', addressesBalance);
 
-    addressesBalance = tx.outputs.reduce(async (pre, output, index, arr) => {
+    addressesBalance = await tx.outputs.reduce(async (pre, output, index, arr) => {
       const address = bech32Address(output.lock.args);
       const originalBalance = await this.getOriginalBalance(address, pre);
       pre[address] = originalBalance + bigintStrToNum(output.capacity);
