@@ -30,14 +30,7 @@ export class CellController {
   // async getHeaderByNum(@Param('hexNum') hexNum: string): Promise <any> {
   //   return await this.cellService.getHeaderByNum(hexNum)
   // }
-
-  @Get('getTxHistoryByAddress/:address')
-  async getTxHistoryByAddress(@Param('address') address: string): Promise<any> {
-    const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
-    const pubkeyHash = "0x" + parsedHex.toString().slice(6)
-
-    const txs = await this.cellService.getTxsByPubkeyHash(pubkeyHash)
-
+  async parseBlockTxs(txs) {
     const opts: ckbUtils.AddressOptions = {
       prefix: ckbUtils.AddressPrefix.Testnet,
       type: ckbUtils.AddressType.HashIdx,
@@ -101,6 +94,15 @@ export class CellController {
     }
 
     return newTxs
+  }
 
+  @Get('getTxHistoryByAddress/:address')
+  async getTxHistoryByAddress(@Param('address') address: string): Promise<any> {
+    const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
+    const pubkeyHash = "0x" + parsedHex.toString().slice(6)
+
+    const txs = await this.cellService.getTxsByPubkeyHash(pubkeyHash)
+
+    return await this.parseBlockTxs(txs)
   }
 }
