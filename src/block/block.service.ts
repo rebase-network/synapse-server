@@ -45,8 +45,7 @@ export class BlockService extends NestSchedule {
 
     console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
     for (let i = tipNumSynced+1; i <= tipNum; i++) {
-      await this.updateCells(i)
-      await this.updateCells(i)
+      await this.updateBlockInfo(i)
     }
 
     await this.updateTip(tipNum);
@@ -54,65 +53,65 @@ export class BlockService extends NestSchedule {
     this.isSyncing = false;
   }
 
-
   /**
    * fetch the specified block from CKB chain, extract data and then update database
    * @param height block number
    */
-  async updateCells(height: number) {
+  async updateBlockInfo(height: number) {
     // compare and save cells into db, from block[tipNumSynced] to block[tipNum]
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
 
-    // update address balance
-    const addressesBalance = {}
-
-    block.transactions.forEach(tx => {
+    block.transactions.forEach(async tx => {
       tx.inputs.forEach(async input => {
         // kill cell(update cell isLive flag)
-        const oldCellObj = {
-          isLive: true,
-          txHash: input.previousOutput.txHash,
-          index: input.previousOutput.index
-        }
-        const oldCell: Cell = await this.cellRepo.findOne(oldCellObj);
-        if(oldCell) {
-          Object.assign(oldCell, {
-            isLive: false,
-          });
-          await this.cellRepo.save(oldCell);
-        }
-        if (oldCell) {
-          addressesBalance[oldCell.address] -= oldCell.capacity;
-        }
+        await this.killCell(input);
       })
       tx.outputs.forEach(async (output, index) => {
         // new cell
-        const newCell: Cell = new Cell();
-        Object.assign(newCell, {
-          isLive: true,
-          capacity: bigintStrToNum(output.capacity),
-          address: bech32Address(output.lock.args),
-          txHash: tx.hash,
-          index: `0x${index.toString(16)}`
-        });
-        addressesBalance[newCell.address] += newCell.capacity;
-
-        await this.cellRepo.save(newCell);
+        await this.createCell(output, index, tx);
       })
+      await this.updateAddressBalance(tx);
     })
+  }
+  async getOriginalBalance(address, pre): Promise<number> {
+    const addr: Address = await this.addressRepo.findOne({ address: address });
+    if (!addr) throw new Error("No address found");
+    console.log('--------------- address: ', addr);
+    return pre.hasOwnProperty(address) ? pre[address] : addr.balance;
+  }
+
+  async updateAddressBalance(tx) {
+    // update address balance
+    let addressesBalance = tx.inputs.reduce(async (pre, input, index, arr) => {
+      const oldCellObj = {
+        isLive: true,
+        txHash: input.previousOutput.txHash,
+        index: input.previousOutput.index
+      }
+      const oldCell: Cell = await this.cellRepo.findOne(oldCellObj);
+      if (!oldCell) throw new Error("No cell found");
+      console.log(' ============= oldCell: ', oldCell);
+      const originalBalance = await this.getOriginalBalance(oldCell.address, pre)
+      pre[oldCell.address] = originalBalance - oldCell.capacity;
+      console.log(' 1111111111 pre: ', pre);
+      return pre;
+    }, {})
+    console.log(' 1111111111 addressesBalance: ', addressesBalance);
+
+    addressesBalance = tx.outputs.reduce(async (pre, output, index, arr) => {
+      const address = bech32Address(output.lock.args);
+      const originalBalance = await this.getOriginalBalance(address, pre);
+      pre[address] = originalBalance + bigintStrToNum(output.capacity);
+      console.log(' 222222222222 pre: ', pre);
+      return pre;
+    }, addressesBalance)
+    console.log(' 222222222222 addressesBalance: ', addressesBalance);
     Object.keys(addressesBalance).forEach(async address => {
-      const addr: Address = await this.addressRepo.findOne({ address });
+      let addr: Address = await this.addressRepo.findOne({ address });
       if (!addr) {
-        // addr = {
-        //   address,
-        //   lockHash: '',
-        //   pubKeyHash: '',
-        //   liveCellCount: 0,
-        //   txCount: 0,
-        //   balance: addressesBalance[address]
-        // }
+        addr = new Address()
         addr.address = address;
         addr.lockHash = '';
         addr.pubKeyHash = '';
@@ -123,6 +122,44 @@ export class BlockService extends NestSchedule {
       addr.balance = addressesBalance[address]
       await this.addressRepo.save(addr)
     });
+  }
+
+  // async substractBalance(input) {
+  //   if (oldCell) {
+  //     addressesBalance.hasOwnProperty(oldCell.address) ? 1  -= oldCell.capacity;
+  //   }
+  // }
+
+  // async addBalance(input) {
+  //   addressesBalance[newCell.address] += newCell.capacity;
+  // }
+
+  async killCell(input) {
+    const oldCellObj = {
+      isLive: true,
+      txHash: input.previousOutput.txHash,
+      index: input.previousOutput.index
+    }
+    const oldCell: Cell = await this.cellRepo.findOne(oldCellObj);
+    if(oldCell) {
+      Object.assign(oldCell, {
+        isLive: false,
+      });
+      await this.cellRepo.save(oldCell);
+    }
+  }
+
+  async createCell(output, index, tx) {
+    const newCell: Cell = new Cell();
+    Object.assign(newCell, {
+      isLive: true,
+      capacity: bigintStrToNum(output.capacity),
+      address: bech32Address(output.lock.args),
+      txHash: tx.hash,
+      index: `0x${index.toString(16)}`
+    });
+
+    await this.cellRepo.save(newCell);
   }
 
 
