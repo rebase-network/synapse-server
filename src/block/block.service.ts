@@ -22,26 +22,6 @@ type AddressesBalance = {
   string?: number;
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function toObject(jsonObj) {
-  return JSON.parse(JSON.stringify(jsonObj, (key, value) =>
-    typeof value === 'bigint'
-      ? value.toString()
-      : value // return everything else unchanged
-  ));
-}
-
-function toString(jsonObj) {
-  return JSON.stringify(jsonObj, (key, value) =>
-    typeof value === 'bigint'
-      ? value.toString()
-      : value // return everything else unchanged
-  );
-}
-
 @Injectable()
 export class BlockService extends NestSchedule {
   constructor(
@@ -129,7 +109,7 @@ export class BlockService extends NestSchedule {
   /**
    * sync blocks from blockchain
    */
-  @Interval(5000)
+  // @Interval(5000)
   async sync() {
     // const header = await this.ckb.rpc.getTipHeader();
     const tipNumStr = await this.ckb.rpc.getTipBlockNumber();
