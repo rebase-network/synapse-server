@@ -175,11 +175,6 @@ export class BlockService extends NestSchedule {
         // new cell
         await this.createCell(output, index, tx);
       })
-      // 3. handleAddress:
-      // cell input => address.balance - cell.capacity;
-      // cell output => create address(output.capacity); address.balance + cell.capacity
-      // console.log('bbbbbbbbbbbb block: ', JSON.stringify(block));
-      // console.log('rrrrrrrrrrrr readableTxs: ', JSON.stringify(readableTxs));
     })
     await this.updateAddressBalance(readableTxs);
   }
@@ -191,9 +186,6 @@ export class BlockService extends NestSchedule {
     const preValue = await promisedPreValue;
     let addr = await this.addressRepo.findOne({ address: output.address });
     const originalBalance = addr ? addr.balance : 0;
-    console.log(`start======================= reduce for index ${index}: ${toString(preValue)}, keys: ${Object.keys(preValue)}`);
-    console.log(`addr: ${addr}, originalBalance: ${originalBalance}`);
-    console.log(`output: ${toString(output)}`)
     if (!addr) {
       addr = new Address()
       addr.address = output.address;
@@ -201,7 +193,6 @@ export class BlockService extends NestSchedule {
       await this.addressRepo.save(addr);
     }
     preValue[output.address] = BigInt(originalBalance) + BigInt(output.capacity);
-    console.log(`end======================= reduce for index ${index}: ${toString(preValue)}`);
     return preValue;
   }
 
@@ -210,19 +201,15 @@ export class BlockService extends NestSchedule {
     const originalAddress = await this.getAddress(input.address)
     const balance = _.get(originalAddress, 'balance', 0)
     preValue[input.address] = BigInt(balance) - BigInt(input.capacity);
-    // console.log(' 1111111111 pre: ', pre);
     return preValue;
   }
 
   async updateAddressBalance(txs) {
     await txs.forEach(async (tx, index) => {
       let addressesBalance: AddressesBalance = {}
-      console.log(index, tx, ' ******* ')
       addressesBalance = await tx.outputs.reduce(this.accuOutput, addressesBalance)
-      console.log(' 1111111111111 addressesBalance: ', addressesBalance);
 
       addressesBalance = await tx.inputs.reduce(this.accuInput, addressesBalance)
-      console.log(' 222222222222 addressesBalance: ', addressesBalance);
       Object.keys(addressesBalance).forEach(async address => {
         const addr: Address = await this.getAddress(address);
         addr.balance = addressesBalance[address];
