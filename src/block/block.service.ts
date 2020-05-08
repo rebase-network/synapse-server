@@ -1,7 +1,7 @@
 /// <reference types="@nervosnetwork/ckb-types" />
 import { bech32Address } from '@nervosnetwork/ckb-sdk-utils';
 import { Injectable } from '@nestjs/common';
-import { Interval, NestSchedule } from 'nest-schedule';
+import { Interval, NestSchedule, Timeout } from 'nest-schedule';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
@@ -20,6 +20,11 @@ type ReadableCell = {
 type AddressesBalance = {
   string?: number;
 }
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 @Injectable()
 export class BlockService extends NestSchedule {
   constructor(
@@ -107,7 +112,8 @@ export class BlockService extends NestSchedule {
   /**
    * sync blocks from blockchain
    */
-  @Interval(5000)
+  // @Interval(5000)
+  @Timeout(2000)
   async sync() {
     // const header = await this.ckb.rpc.getTipHeader();
     const tipNumStr = await this.ckb.rpc.getTipBlockNumber();
@@ -122,9 +128,10 @@ export class BlockService extends NestSchedule {
     this.isSyncing = true;
 
     console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
-    for (let i = tipNumSynced+1; i <= tipNum; i++) {
-      await this.updateBlockInfo(i)
-    }
+    // for (let i = tipNumSynced+1; i <= tipNum; i++) {
+    //   await this.updateBlockInfo(i)
+    // }
+    await this.updateBlockInfo(70)
 
     await this.updateTip(tipNum);
     // syncing flag true
@@ -152,56 +159,57 @@ export class BlockService extends NestSchedule {
         // new cell
         await this.createCell(output, index, tx);
       })
-    // 3. handleAddress:
-    // cell input => address.balance - cell.capacity;
-    // cell output => create address(output.capacity); address.balance + cell.capacity
-    await this.updateAddressBalance(readableTxs);
+      // 3. handleAddress:
+      // cell input => address.balance - cell.capacity;
+      // cell output => create address(output.capacity); address.balance + cell.capacity
+      // console.log('bbbbbbbbbbbb block: ', JSON.stringify(block));
+      // console.log('rrrrrrrrrrrr readableTxs: ', JSON.stringify(readableTxs));
     })
+    await this.updateAddressBalance(readableTxs);
   }
   async getAddress(address: string): Promise<Address> {
     return await this.addressRepo.findOne({ address: address });
-    // if (!addr) throw new Error("No address found");
-    // console.log('--------------- address: ', addr);
-    // return addr.balance;
   }
+  accuOutput = async (pre, output: ReadableCell, index, arr) => {
+    console.log(' ---------- ', pre, output, index, arr.toString())
+    let addr = await this.getAddress(output.address);
 
-
+    if (!addr) {
+      console.log('will save address');
+      addr = new Address()
+      addr.address = output.address;
+      addr.balance = output.capacity;
+      await this.addressRepo.save(addr);
+    } else {
+      pre[output.address] = BigInt(addr.balance) + BigInt(output.capacity);
+    }
+    console.log(' +++++++++++++ ', pre, output, index, arr.toString())
+    return pre;
+  }
   async updateAddressBalance(txs) {
+    console.log('updateAddressBalance 111111111 ', JSON.stringify(txs))
     // update address balance
-    txs.forEach(async tx => {
+    await txs.forEach(async (tx, index) => {
+      console.log(index, tx, ' ******* ')
+      let addressesBalance: AddressesBalance = await tx.outputs.reduce(this.accuOutput, {})
 
-      let addressesBalance: AddressesBalance = await tx.outputs.reduce(async (pre, output: ReadableCell, index, arr) => {
-        let addr = await this.getAddress(output.address);
-        if (!addr) {
-          console.log(' ====== addr: ', addr)
-          addr = new Address()
-          addr.address = output.address;
-          addr.balance = output.capacity;
-          await this.addressRepo.save(addr);
-        }
-        pre[output.address] = BigInt(addr.balance) + BigInt(output.capacity);
-        console.log(' 222222222222 pre: ', pre);
-        return pre;
-      }, {})
-
-      addressesBalance = await tx.inputs.reduce(async (pre, input: ReadableCell, index, arr) => {
-        // console.log(' ============= txHash: ', input.previousOutput.txHash);
-        // if (EMPTY_TX_HASH === input.previousOutput.txHash) return pre;
-        const originalAddress = await this.getAddress(input.address)
-        pre[input.address] = BigInt(originalAddress.balance) - BigInt(input.capacity);
-        console.log(' 1111111111 pre: ', pre);
-        return pre;
-      }, addressesBalance)
-      console.log(' 1111111111 addressesBalance: ', addressesBalance);
+      // addressesBalance = await tx.inputs.reduce(async (pre, input: ReadableCell, index, arr) => {
+      //   // console.log(' ============= txHash: ', input.previousOutput.txHash);
+      //   // if (EMPTY_TX_HASH === input.previousOutput.txHash) return pre;
+      //   const originalAddress = await this.getAddress(input.address)
+      //   pre[input.address] = BigInt(originalAddress.balance) - BigInt(input.capacity);
+      //   // console.log(' 1111111111 pre: ', pre);
+      //   return pre;
+      // }, addressesBalance)
 
       console.log(' 222222222222 addressesBalance: ', addressesBalance);
 
 
-      Object.keys(addressesBalance).forEach(async address => {
-        // const addr: Address = await this.addressRepo.findOne({ address });
-        // addr.balance = addressesBalance[address];
-        await this.addressRepo.update({ address }, { balance: addressesBalance[address] });
-      });
+      // Object.keys(addressesBalance).forEach(async address => {
+      //   // const addr: Address = await this.addressRepo.findOne({ address });
+      //   // addr.balance = addressesBalance[address];
+      //   await this.addressRepo.update({ address }, { balance: addressesBalance[address] });
+      // });
     });
   }
 
