@@ -36,6 +36,35 @@ export class CellController {
     const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
     const pubkeyHash = "0x" + parsedHex.toString().slice(6)
 
-    return await this.cellService.getTxsByPubkeyHash(pubkeyHash)
+    let txs = await this.cellService.getTxHistoryByPubkeyHash(pubkeyHash)
+
+    for (let tx of txs) {
+      // Object.values(tx.inputs).map(item => item.capacity);
+      // Object.values(tx.outputs).map(item => item.capacity);
+
+      const inSum = tx.inputs.reduce((prev, next) => prev + next.capacity, 0)
+      const outSum = tx.outputs.reduce((prev, next) => prev + next.capacity, 0)
+      const fee = inSum - outSum
+
+      tx['fee'] = fee
+
+      for (const input of tx.inputs) {
+        if (input.address === address) {
+          tx['income'] = false // 入账\收入
+          tx['amount'] = input.capacity
+          break
+        }
+      }
+
+      for (const output of tx.outputs) {
+        if (output.address === address) {
+          tx['income'] = true
+          tx['amount'] = output.capacity
+          break
+        }
+      }
+    }
+
+    return txs
   }
 }

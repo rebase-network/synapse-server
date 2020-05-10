@@ -68,7 +68,7 @@ export class CellService {
     return result;
   }
 
-  public getTxsByPubkeyHash(pubkeyHash: string): Promise<any> {
+  public getTxHistoryByPubkeyHash(pubkeyHash: string): Promise<any> {
     // https://explorer.nervos.org/aggron/transaction/0x42954c09bdf78338e480376ab2b08feeb56a10abd78fbe568beeae10a219361d
     // ckb-indexer 没有去重
 
@@ -102,8 +102,8 @@ export class CellService {
         },
         "script_type": "lock"
       },
-        "desc", // 倒叙排列，最近的16条交易记录
-        "0xf" // 16
+        "desc", // 倒叙排列，最近的20条交易记录
+        "0x14" // 20
       ]
     }
 
