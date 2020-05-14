@@ -46,24 +46,34 @@ export class CellController {
       const fee = inSum - outSum
       tx['fee'] = fee < 0 ? 0 : fee // handle cellBase condition
       let flag = false
+
       for (const input of tx.inputs) {
         if (input.address === address) {
-          tx['income'] = false // 入账\收入
-          tx['amount'] = input.capacity
           flag = true
+          tx['income'] = false // 入账\收入
+
+          for (const output of tx.outputs) {
+            if (output.address !== address) {
+              tx['amount'] = output.capacity
+              break
+            }
+          }
+
           break
         }
       }
-      
+
       if (!flag) {
+        tx['income'] = true // 入账\收入
+
         for (const output of tx.outputs) {
           if (output.address === address) {
-            tx['income'] = true
             tx['amount'] = output.capacity
             break
           }
         }
       }
+
     }
 
     return txs
