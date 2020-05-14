@@ -15,10 +15,10 @@ export class Address {
   address: string;
 
   @Column('bigint', { default: 0 })
-  balance: bigint;
+  capacity: bigint;
 
   // @Column('bigint', { default: 0 })
-  // liveCellCount: number;
+  // cellsCount: number;
 
   // @Column('bigint', { default: 0 })
   // txCount: number;
