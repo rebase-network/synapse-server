@@ -6,10 +6,10 @@ import { AddressService } from './address.service'
 export class AddressController {
   constructor(private readonly addressService: AddressService) {}
 
-  @Get('capacity/:lockHash')
+  @Get(':address')
   async getCapacity(
-    @Param('lockHash') lockHash: CKBComponents.Hash,
-  ): Promise<CKBComponents.CapacityByLockHash> {
-    return await this.addressService.getCapacity(lockHash);
+    @Param('address') address: string,
+  ): Promise<{ capacity: bigint }> {
+    return await this.addressService.getCapacity(address);
   }
 }
