@@ -205,7 +205,7 @@ export class BlockService extends NestSchedule {
       index: input.previousOutput.index
     }
     const oldCell: Cell = await this.cellRepo.findOne(oldCellObj);
-    if(oldCell) {
+    if(oldCell && oldCell.isLive) {
       Object.assign(oldCell, {
         isLive: false,
       });
@@ -214,14 +214,17 @@ export class BlockService extends NestSchedule {
   }
 
   async createCell(output, index, tx) {
-    const newCell: Cell = new Cell();
-    Object.assign(newCell, {
+    const cellObj = {
       isLive: true,
       capacity: bigintStrToNum(output.capacity),
       address: bech32Address(output.lock.args),
       txHash: tx.hash,
       index: `0x${index.toString(16)}`
-    });
+    }
+    const savedCell = await this.cellRepo.findOne(cellObj)
+    if (savedCell) return;
+    const newCell: Cell = new Cell();
+    Object.assign(newCell, cellObj);
 
     await this.cellRepo.save(newCell);
   }
