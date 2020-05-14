@@ -41,26 +41,27 @@ export class CellController {
     for (let tx of txs) {
       // Object.values(tx.inputs).map(item => item.capacity);
       // Object.values(tx.outputs).map(item => item.capacity);
-
       const inSum = tx.inputs.reduce((prev, next) => prev + next.capacity, 0)
       const outSum = tx.outputs.reduce((prev, next) => prev + next.capacity, 0)
       const fee = inSum - outSum
-
       tx['fee'] = fee < 0 ? 0 : fee // handle cellBase condition
-
+      let flag = false
       for (const input of tx.inputs) {
         if (input.address === address) {
           tx['income'] = false // 入账\收入
           tx['amount'] = input.capacity
+          flag = true
           break
         }
       }
-
-      for (const output of tx.outputs) {
-        if (output.address === address) {
-          tx['income'] = true
-          tx['amount'] = output.capacity
-          break
+      
+      if (!flag) {
+        for (const output of tx.outputs) {
+          if (output.address === address) {
+            tx['income'] = true
+            tx['amount'] = output.capacity
+            break
+          }
         }
       }
     }
