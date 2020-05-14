@@ -18,7 +18,7 @@ type ReadableCell = {
   "capacity": bigint;
   "address": string;
 }
-type AddressesBalance = {
+type TAddressesCapacity = {
   string?: number;
 }
 
@@ -156,7 +156,7 @@ export class BlockService extends NestSchedule {
         await this.createCell(output, index, tx);
       })
     })
-    await this.updateAddressBalance(readableTxs);
+    await this.updateAddressCapacity(readableTxs);
   }
   async getAddress(address: string): Promise<Address> {
     return await this.addressRepo.findOne({ address: address });
@@ -165,35 +165,35 @@ export class BlockService extends NestSchedule {
   accuOutput = async (promisedPreValue, output: ReadableCell, index, arr) => {
     const preValue = await promisedPreValue;
     let addr = await this.addressRepo.findOne({ address: output.address });
-    const originalBalance = addr ? addr.balance : 0;
+    const originalCapacity = addr ? addr.capacity : 0;
     if (!addr) {
       addr = new Address()
       addr.address = output.address;
-      addr.balance = output.capacity;
+      addr.capacity = output.capacity;
       await this.addressRepo.save(addr);
     }
-    preValue[output.address] = BigInt(originalBalance) + BigInt(output.capacity);
+    preValue[output.address] = BigInt(originalCapacity) + BigInt(output.capacity);
     return preValue;
   }
 
   accuInput = async (promisedPreValue, input: ReadableCell, index, arr) => {
     const preValue = await promisedPreValue;
     const originalAddress = await this.getAddress(input.address)
-    const balance = _.get(originalAddress, 'balance', 0)
-    preValue[input.address] = BigInt(balance) - BigInt(input.capacity);
+    const capacity = _.get(originalAddress, 'capacity', 0)
+    preValue[input.address] = BigInt(capacity) - BigInt(input.capacity);
     return preValue;
   }
 
-  async updateAddressBalance(txs) {
+  async updateAddressCapacity(txs) {
     await txs.forEach(async (tx, index) => {
-      let addressesBalance: AddressesBalance = {}
-      addressesBalance = await tx.outputs.reduce(this.accuOutput, addressesBalance)
+      let addressesCapacity: TAddressesCapacity = {}
+      addressesCapacity = await tx.outputs.reduce(this.accuOutput, addressesCapacity)
 
-      addressesBalance = await tx.inputs.reduce(this.accuInput, addressesBalance)
-      Object.keys(addressesBalance).forEach(async address => {
+      addressesCapacity = await tx.inputs.reduce(this.accuInput, addressesCapacity)
+      Object.keys(addressesCapacity).forEach(async address => {
         const addr: Address = await this.getAddress(address);
-        addr.balance = addressesBalance[address];
-        await this.addressRepo.update({ id: addr.id }, { balance: addressesBalance[address] });
+        addr.capacity = addressesCapacity[address];
+        await this.addressRepo.update({ id: addr.id }, { capacity: addressesCapacity[address] });
       });
     });
   }
