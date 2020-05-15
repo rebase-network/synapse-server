@@ -7,3 +7,5 @@ export const EMPTY_TX_HASH =
 
 export const MILLISECONDS_IN_YEAR = 365 * 24 * 3600000;
 export const GENESIS_BLOCK_TIMESTAMP = 1573963200 * 1000;
+
+export const CKB_TOKEN_DECIMALS = 10**8;
