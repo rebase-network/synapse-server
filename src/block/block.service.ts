@@ -12,7 +12,7 @@ import { Cell } from '../model/cell.entity';
 import { Address } from '../model/address.entity';
 import { CkbService } from '../ckb/ckb.service';
 import { bigintStrToNum } from '../util/number';
-import { EMPTY_TX_HASH } from '../util/constant';
+import { EMPTY_TX_HASH, BLOCK_SYNC_BATCH_NUMBER } from '../util/constant';
 
 type ReadableCell = {
   capacity: bigint;
@@ -134,10 +134,13 @@ export class BlockService extends NestSchedule {
     console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
     for (let i = tipNumSynced+1; i <= tipNum; i++) {
       await this.updateBlockInfo(i)
+      if (i % BLOCK_SYNC_BATCH_NUMBER === 0) {
+        await this.updateTip(i);
+      }
     }
+    await this.updateTip(tipNum);
     // await this.updateBlockInfo(154)
 
-    await this.updateTip(tipNum);
     // syncing flag true
     this.isSyncing = false;
   }
