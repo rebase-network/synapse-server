@@ -208,7 +208,6 @@ export class BlockService extends NestSchedule {
 
   async updateAddressCapacity(txs: TTx[]) {
     const addressesForUpdate: TAddressesCapacity = this.getAddressesForUpdate(txs);
-    console.log('addressesForUpdate: ', addressesForUpdate);
 
     const addressesUpdater = Object.keys(addressesForUpdate).map(async address => {
       const oldAddr: Address = await this.getAddress(address);
