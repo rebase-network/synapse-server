@@ -37,7 +37,6 @@ export class BlockService extends NestSchedule {
   private readonly ckb = this.ckbService.getCKB();
   private isSyncing = false;
 
-
   async parseBlockTxs(txs) {
     const opts: ckbUtils.AddressOptions = {
       prefix: ckbUtils.AddressPrefix.Testnet,
@@ -143,6 +142,9 @@ export class BlockService extends NestSchedule {
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
+
+    this.createBlock(block, block.transactions.length)
+
     // 1. format block, formatted inputs and outputs
     const readableTxs = await this.parseBlockTxs(block.transactions)
     // 2. handleCell: killCell(isLive = false), createCell(isLive = true)
@@ -158,6 +160,7 @@ export class BlockService extends NestSchedule {
     })
     await this.updateAddressCapacity(readableTxs);
   }
+
   async getAddress(address: string): Promise<Address> {
     return await this.addressRepo.findOne({ address: address });
   }
@@ -211,6 +214,27 @@ export class BlockService extends NestSchedule {
       });
       await this.cellRepo.save(oldCell);
     }
+  }
+
+  async createBlock(block, txCount) {
+    const header = block.header
+
+    const blockObj = {
+      number: parseInt(header.number, 16),
+      hash: header.hash,
+      // epochNumber: parseInt(header.epoch, 16),
+      // epochIndex: parseInt(header.nonce, 16),
+      // epochLength: 0,
+      timestamp: parseInt(header.timestamp, 16),
+      transactionCount: txCount,
+      dao: header.dao
+    }
+
+    const savedBlock = await this.blockRepo.findOne(blockObj)
+    if (savedBlock) return;
+    const newBlock: Block = new Block();
+    Object.assign(newBlock, blockObj);
+    await this.blockRepo.save(newBlock);
   }
 
   async createCell(output, index, tx) {
