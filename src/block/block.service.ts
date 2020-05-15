@@ -65,9 +65,8 @@ export class BlockService extends NestSchedule {
         newTx['blockNum'] = parseInt(tx.block_number, 16)
         const header = await this.ckb.rpc.getHeaderByNumber(tx.block_number)
         console.log('===> header: ', header, tx)
-        if (header) {
-          newTx['timestamp'] = parseInt(header.timestamp, 16)
-        }
+        if (!header) continue;
+        newTx['timestamp'] = parseInt(header.timestamp, 16)
       }
 
       // const txObj = await this.cellService.getTxByTxHash(tx.tx_hash)
