@@ -23,11 +23,14 @@ type TAddressesCapacity = {
 }
 
 type TTx = {
+  hash: string;
+  blockNum: number;
+  timestamp: number;
   outputs: [ReadableCell];
   inputs: [ReadableCell];
-  hash: string;
-  block_num: number;
-  timestamp: number;
+  fee: number;
+  income: boolean;
+  amount: number;
 }
 
 @Injectable()
@@ -59,7 +62,7 @@ export class BlockService extends NestSchedule {
 
       newTx['hash'] = tx.tx_hash
       if (tx.block_number) {
-        newTx['block_num'] = parseInt(tx.block_number, 16)
+        newTx['blockNum'] = parseInt(tx.block_number, 16)
         const header = await this.ckb.rpc.getHeaderByNumber(tx.block_number)
         newTx['timestamp'] = parseInt(header.timestamp, 16)
       }
