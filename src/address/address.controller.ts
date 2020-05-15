@@ -9,7 +9,7 @@ export class AddressController {
   @Get(':address')
   async getCapacity(
     @Param('address') address: string,
-  ): Promise<{ capacity: bigint }> {
+  ): Promise<{ capacity: string }> {
     return await this.addressService.getCapacity(address);
   }
 }

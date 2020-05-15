@@ -18,13 +18,13 @@ export class AddressService {
    * get capacity by address
    * @param lockHash the hash of lock script
    */
-  async getCapacity(address: string): Promise<{ capacity: bigint }> {
+  async getCapacity(address: string): Promise<{ capacity: string }> {
     const result = await this.repo.findOne({ address });
     if (!result) {
-      return { capacity: BigInt(0) }
+      return { capacity: '0' }
     }
     return {
-      capacity: result.capacity,
+      capacity: result.capacity.toString(),
     }
   }
 }
