@@ -12,7 +12,7 @@ import { Cell } from '../model/cell.entity';
 import { Address } from '../model/address.entity';
 import { CkbService } from '../ckb/ckb.service';
 import { bigintStrToNum } from '../util/number';
-import { EMPTY_TX_HASH, BLOCK_SYNC_BATCH_NUMBER } from '../util/constant';
+import { EMPTY_TX_HASH } from '../util/constant';
 
 type ReadableCell = {
   capacity: bigint;
@@ -119,10 +119,8 @@ export class BlockService extends NestSchedule {
    */
   @Interval(5000)
   async sync() {
-    // const header = await this.ckb.rpc.getTipHeader();
     const tipNumStr = await this.ckb.rpc.getTipBlockNumber();
     const tipNum = parseInt(tipNumStr, 16);
-    // get current synced height from db: syncedBlockNum
     const syncStat = await this.syncStatRepo.findOne();
     const tipNumSynced = syncStat ? Number(syncStat.tip) : 0;
 
@@ -134,14 +132,9 @@ export class BlockService extends NestSchedule {
     console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
     for (let i = tipNumSynced+1; i <= tipNum; i++) {
       await this.updateBlockInfo(i)
-      if (i % BLOCK_SYNC_BATCH_NUMBER === 0) {
-        await this.updateTip(i);
-      }
+      await this.updateTip(tipNum);
     }
-    await this.updateTip(tipNum);
-    // await this.updateBlockInfo(154)
 
-    // syncing flag true
     this.isSyncing = false;
   }
 
@@ -150,18 +143,15 @@ export class BlockService extends NestSchedule {
    * @param height block number
    */
   async updateBlockInfo(height: number) {
-    // compare and save cells into db, from block[tipNumSynced] to block[tipNum]
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
 
     this.createBlock(block, block.transactions.length)
 
-    // 1. format block, formatted inputs and outputs
     const readableTxs: TTx[] = await this.parseBlockTxs(block.transactions);
     console.log(`=================== Start block ${height} ======================`);
 
-    // 2. handleCell: killCell(isLive = false), createCell(isLive = true)
     block.transactions.forEach(async tx => {
       tx.inputs.forEach(async (input: CKBComponents.CellInput) => {
         await this.killCell(input);
