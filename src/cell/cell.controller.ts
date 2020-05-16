@@ -36,9 +36,9 @@ export class CellController {
     const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
     const pubkeyHash = "0x" + parsedHex.toString().slice(6)
 
-    let txs = await this.cellService.getTxHistoryByPubkeyHash(pubkeyHash)
+    const txs = await this.cellService.getTxHistoryByPubkeyHash(pubkeyHash)
 
-    for (let tx of txs) {
+    for (const tx of txs) {
       // Object.values(tx.inputs).map(item => item.capacity);
       // Object.values(tx.outputs).map(item => item.capacity);
       const inSum = tx.inputs.reduce((prev, next) => prev + next.capacity, 0)
