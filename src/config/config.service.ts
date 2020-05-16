@@ -62,7 +62,7 @@ class ConfigService {
         migrationsDir: `${SOURCE_PATH}/migration`
       },
 
-      ssl: this.isProduction(),
+      ssl: false,
     };
   }
 
