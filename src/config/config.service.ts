@@ -42,6 +42,7 @@ class ConfigService {
   }
 
   public getTypeOrmConfig(): TypeOrmModuleOptions {
+    const SOURCE_PATH = this.isProduction() ? 'dist' : 'src';
     return {
       type: 'postgres',
 
@@ -51,14 +52,14 @@ class ConfigService {
       password: this.getValue('POSTGRES_PASSWORD'),
       database: this.getValue('POSTGRES_DATABASE'),
 
-      entities: ['**/*.entity{.ts,.js}'],
+      entities: [`${SOURCE_PATH}/**/*.entity{.ts,.js}`],
 
       migrationsTableName: 'migration',
 
-      migrations: ['src/migration/*.ts'],
+      migrations: [`${SOURCE_PATH}/migration/**{.ts,.js}`],
 
       cli: {
-        migrationsDir: 'src/migration',
+        migrationsDir: `${SOURCE_PATH}/migration`
       },
 
       ssl: this.isProduction(),
