@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseInterceptors } from '@nestjs/common';
 import { CellService } from './cell.service';
 import { LoggingInterceptor } from '../logging.interceptor';
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
@@ -16,27 +16,15 @@ export class CellController {
     return await this.cellService.getBalanceByPubkeyHash(pubkeyHash)
   }
 
-  // @Get('getBalanceByAddress/:address')
-  // async getBalanceByAddress(@Param('address') address: string): Promise<number> {
-  //   return await this.cellService.getBalanceByAddress(address)
-  // }
+  @Post('getTxHistoryByAddress')
+  async getTxHistoryByAddress(@Body() params: any): Promise<any> {
+    // const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(params))
+    // const pubkeyHash = "0x" + parsedHex.toString().slice(6)
+    console.log('---> params: ', params)
+    const { address } = params;
 
-  // @Get('getTxByTxHash/:txHash')
-  // async getTxByTxHash(@Param('txHash') txHash: string): Promise <any> {
-  //   return await this.cellService.getTxByTxHash(txHash)
-  // }
-
-  // @Get('getHeaderByNum/:hexNum')
-  // async getHeaderByNum(@Param('hexNum') hexNum: string): Promise <any> {
-  //   return await this.cellService.getHeaderByNum(hexNum)
-  // }
-
-  @Get('getTxHistoryByAddress/:address')
-  async getTxHistoryByAddress(@Param('address') address: string): Promise<any> {
-    const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
-    const pubkeyHash = "0x" + parsedHex.toString().slice(6)
-
-    const txs = await this.cellService.getTxHistoryByPubkeyHash(pubkeyHash)
+    const txs = await this.cellService.getTxHistoryByPubkeyHash(params);
+    console.log('---> txs: ', JSON.stringify(txs))
 
     for (const tx of txs) {
       // Object.values(tx.inputs).map(item => item.capacity);

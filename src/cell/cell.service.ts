@@ -1,3 +1,4 @@
+/// <reference types="@nervosnetwork/ckb-types" />
 import { Injectable, HttpService } from '@nestjs/common';
 import { map } from 'rxjs/operators';
 import { Repository } from 'typeorm';
@@ -70,21 +71,17 @@ export class CellService {
     return result;
   }
 
-  public getTxHistoryByPubkeyHash(pubkeyHash: string): Promise<any> {
+
+  public getTxHistoryByPubkeyHash(params: Types.Indexer.QueryTxParams): Promise<any> {
+    const { script, scriptType, order = 'desc', limit = '0x14' } = params;
     const payload = {
-      "id": 0,
-      "jsonrpc": "2.0",
-      "method": "get_transactions",
-      "params": [{
-        "script": {
-          "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          "hash_type": "type",
-          "args": pubkeyHash
-        },
-        "script_type": "lock"
-      },
-        "desc", // 倒叙排列，最近的20条交易记录
-        "0x14" // 20
+      id: 0,
+      jsonrpc: "2.0",
+      method: "get_transactions",
+      params: [
+        { script: script, 'script_type': scriptType },
+        order,
+        limit,
       ]
     }
 
