@@ -136,6 +136,9 @@ export class BlockService extends NestSchedule {
       '0x' + height.toString(16),
     );
 
+    const savedBlock = await this.blockRepo.findOne({ number: height })
+    if (savedBlock) return;
+
     await this.updateTip(height);
 
     await this.createBlock(block, block.transactions.length);
@@ -240,8 +243,6 @@ export class BlockService extends NestSchedule {
       dao: header.dao
     }
 
-    const savedBlock = await this.blockRepo.findOne(blockObj)
-    if (savedBlock) return;
     const newBlock: Block = new Block();
     Object.assign(newBlock, blockObj);
     await this.blockRepo.save(newBlock);
