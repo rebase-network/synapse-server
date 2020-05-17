@@ -122,7 +122,6 @@ export class BlockService extends NestSchedule {
     console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
     for (let i = tipNumSynced+1; i <= tipNum; i++) {
       await this.updateBlockInfo(i)
-      await this.updateTip(tipNum);
     }
 
     this.isSyncing = false;
@@ -137,7 +136,9 @@ export class BlockService extends NestSchedule {
       '0x' + height.toString(16),
     );
 
-    this.createBlock(block, block.transactions.length)
+    await this.updateTip(height);
+
+    await this.createBlock(block, block.transactions.length);
 
     const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(block.transactions);
     console.log(`=================== Start block ${height} ======================`);
@@ -152,6 +153,7 @@ export class BlockService extends NestSchedule {
     })
 
     await this.updateAddressCapacity(readableTxs);
+
     console.log(`****************** End block ${height} ****************** `);
   }
 
