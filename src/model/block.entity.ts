@@ -21,7 +21,7 @@ export class Block {
   @Column('bigint', { default: 0 })
   epochLength: number;
 
-  @Column('integer')
+  @Column('bigint')
   timestamp: number;
 
   @Column('integer')
