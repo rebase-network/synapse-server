@@ -4,10 +4,13 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 @Entity({ name: 'block' })
 export class Block {
   @PrimaryGeneratedColumn()
-  number: number;
+  id: number;
 
   @Column('varchar', { length: 66 })
   hash: string;
+
+  @Column('bigint', { default: 0 })
+  number: number;
 
   @Column('bigint', { default: 0 })
   epochNumber: number;
@@ -18,12 +21,12 @@ export class Block {
   @Column('bigint', { default: 0 })
   epochLength: number;
 
-  @Column('bigint')
+  @Column('integer')
   timestamp: number;
-
-  @Column('varchar', { length: 66 })
-  dao: string;
 
   @Column('integer')
   transactionCount: number;
+
+  @Column('varchar', { length: 66 })
+  dao: string;
 }
