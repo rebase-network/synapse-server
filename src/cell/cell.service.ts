@@ -2,6 +2,8 @@ import { Injectable, HttpService } from '@nestjs/common';
 import { map } from 'rxjs/operators';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as _ from 'lodash';
+import * as Types from '../types';
 import { Cell as CellEntity } from '../model/cell.entity';
 import { Cell } from './interfaces/cell.interface';
 import { configService } from '../config/config.service';
@@ -69,27 +71,6 @@ export class CellService {
   }
 
   public getTxHistoryByPubkeyHash(pubkeyHash: string): Promise<any> {
-    // https://explorer.nervos.org/aggron/transaction/0x42954c09bdf78338e480376ab2b08feeb56a10abd78fbe568beeae10a219361d
-    // ckb-indexer 没有去重
-
-    /*
-      [{
-          "block_number": "0x2b890",
-          "io_index": "0x0",
-          "io_type": "output",
-          "tx_hash": "0x965ae599eb55fafb70816be039343e43ca25c492eb4cbdad260682492c5c8da0",
-          "tx_index": "0x1"
-        },
-        {
-          "block_number": "0x24e2f",
-          "io_index": "0x0",
-          "io_type": "output",
-          "tx_hash": "0x3552713aa857b4536195d81b4555f86b6566e1416791a8cf60090daa76eeae52",
-          "tx_index": "0x2f"
-        }
-      ]
-     */
-
     const payload = {
       "id": 0,
       "jsonrpc": "2.0",
@@ -114,7 +95,8 @@ export class CellService {
       console.log("txs num: ", txs.length);
 
       if (txs.length === 0) return null;
-      return this.blockService.parseBlockTxs(txs)
+      const txsWithUniqueHash: Types.TxFromIndexer[] = _.uniqBy(txs, 'tx_hash');;
+      return this.blockService.parseBlockTxs(txsWithUniqueHash)
     })).toPromise();
 
   }
