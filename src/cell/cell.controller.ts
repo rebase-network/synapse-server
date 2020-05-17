@@ -58,4 +58,10 @@ export class CellController {
     }
     return txs
   }
+
+  @Post('getLiveCells')
+  async getLiveCells(@Body() params: any): Promise<any> {
+    const liveCells = await this.cellService.getLiveCells(params)
+    return liveCells
+  }
 }

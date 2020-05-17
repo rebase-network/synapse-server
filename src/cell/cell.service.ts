@@ -18,6 +18,10 @@ export class CellService {
     private readonly blockService: BlockService
   ) { }
 
+  public async create(cell: Cell): Promise<Cell> {
+    return await this.repo.save(cell)
+  }
+
   public getBalanceByPubkeyHash(pubkeyHash: string): Promise<number> {
 
     const payload = {
@@ -98,7 +102,29 @@ export class CellService {
 
   }
 
-  public async create(cell: Cell): Promise<Cell> {
-    return await this.repo.save(cell)
+  public getLiveCells(params: Types.Indexer.QueryTxParams): Promise<any> {
+    const { script, scriptType, order = 'desc', limit = '0x14' } = params;
+
+    const payload = {
+      id: 0,
+      jsonrpc: "2.0",
+      method: "get_cells",
+      params: [
+        { script: script, 'script_type': scriptType },
+        order,
+        limit,
+      ]
+    }
+
+    const observable = this.httpService.post(configService.CKB_INDEXER_ENDPOINT, payload)
+
+    return observable.pipe(map(resp => {
+      const liveCells = resp.data.result.objects
+      console.log("liveCells num: ", liveCells.length);
+
+      if (liveCells.length === 0) return null;
+      return liveCells
+    })).toPromise();
+
   }
 }
