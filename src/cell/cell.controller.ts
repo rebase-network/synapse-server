@@ -16,14 +16,14 @@ export class CellController {
     return await this.cellService.getBalanceByPubkeyHash(pubkeyHash)
   }
 
-  @Post('getTxHistoryByAddress')
-  async getTxHistoryByAddress(@Body() params: any): Promise<any> {
+  @Post('getTxs')
+  async getTxs(@Body() params: any): Promise<any> {
     // const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(params))
     // const pubkeyHash = "0x" + parsedHex.toString().slice(6)
     console.log('---> params: ', params)
     const { address } = params;
 
-    const txs = await this.cellService.getTxHistoryByPubkeyHash(params);
+    const txs = await this.cellService.getTxs(params);
     console.log('---> txs: ', JSON.stringify(txs))
 
     for (const tx of txs) {
