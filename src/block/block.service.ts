@@ -139,9 +139,9 @@ export class BlockService extends NestSchedule {
     const savedBlock = await this.blockRepo.findOne({ number: height });
     if (savedBlock) return;
 
-    await this.updateTip(height);
-
     await this.createBlock(block, block.transactions.length);
+
+    await this.updateTip(height);
 
     const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(block.transactions);
     console.log(`=================== Start block ${height} ======================`);
