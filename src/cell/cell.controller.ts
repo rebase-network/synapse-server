@@ -46,6 +46,7 @@ export class CellController {
       const fee = inSum - outSum
       tx['fee'] = fee < 0 ? 0 : fee // handle cellBase condition
       let flag = false
+      tx['amount'] = 0;
 
       for (const input of tx.inputs) {
         if (input.address === address) {
