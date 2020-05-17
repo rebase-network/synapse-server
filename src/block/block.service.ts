@@ -136,7 +136,7 @@ export class BlockService extends NestSchedule {
       '0x' + height.toString(16),
     );
 
-    const savedBlock = await this.blockRepo.findOne({ number: height })
+    const savedBlock = await this.blockRepo.findOne({ number: height });
     if (savedBlock) return;
 
     await this.updateTip(height);
@@ -276,7 +276,7 @@ export class BlockService extends NestSchedule {
     } else {
       block = this.syncStatRepo.create({ tip })
     }
-    this.syncStatRepo.save(block)
+    await this.syncStatRepo.save(block)
     console.log('Height updated to: ', tip)
     return { block };
   }
