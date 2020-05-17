@@ -6,6 +6,7 @@ import { Interval, NestSchedule } from 'nest-schedule';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
+import * as Types from '../types';
 import { Block } from '../model/block.entity';
 import { SyncStat } from '../model/syncstat.entity';
 import { Cell } from '../model/cell.entity';
@@ -14,23 +15,8 @@ import { CkbService } from '../ckb/ckb.service';
 import { bigintStrToNum } from '../util/number';
 import { EMPTY_TX_HASH } from '../util/constant';
 
-type ReadableCell = {
-  capacity: bigint;
-  address: string;
-}
-type TAddressesCapacity = {
+interface TAddressesCapacity {
   string?: number;
-}
-
-type TTx = {
-  hash: string;
-  blockNum: number;
-  timestamp: number;
-  outputs: [ReadableCell];
-  inputs: [ReadableCell];
-  fee: number;
-  income: boolean;
-  amount: number;
 }
 
 @Injectable()
@@ -49,7 +35,7 @@ export class BlockService extends NestSchedule {
   private isSyncing = false;
 
 
-  async parseBlockTxs(txs): Promise<TTx[]> {
+  async parseBlockTxs(txs): Promise<Types.ReadableTx[]> {
     const opts: ckbUtils.AddressOptions = {
       prefix: ckbUtils.AddressPrefix.Testnet,
       type: ckbUtils.AddressType.HashIdx,
@@ -153,7 +139,7 @@ export class BlockService extends NestSchedule {
 
     this.createBlock(block, block.transactions.length)
 
-    const readableTxs: TTx[] = await this.parseBlockTxs(block.transactions);
+    const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(block.transactions);
     console.log(`=================== Start block ${height} ======================`);
 
     block.transactions.forEach(async tx => {
@@ -173,7 +159,7 @@ export class BlockService extends NestSchedule {
     return await this.addressRepo.findOne({ address: address });
   }
 
-  accuOutput = (previous: TAddressesCapacity | any, cell: ReadableCell) => {
+  accuOutput = (previous: TAddressesCapacity | any, cell: Types.ReadableCell) => {
     const previousCapacity = _.get(previous, cell.address, BigInt(0));
 
     const result = Object.assign(previous, {
@@ -183,7 +169,7 @@ export class BlockService extends NestSchedule {
     return result;
   }
 
-  accuInput = (previous: TAddressesCapacity, cell: ReadableCell) => {
+  accuInput = (previous: TAddressesCapacity, cell: Types.ReadableCell) => {
     const previousCapacity = _.get(previous, cell.address, BigInt(0));
     const result = Object.assign(previous, {
       [cell.address]: BigInt(previousCapacity) - BigInt(cell.capacity)
@@ -192,10 +178,10 @@ export class BlockService extends NestSchedule {
     return result;
   }
 
-  getAddressesForUpdate = (txs: TTx[]) => {
+  getAddressesForUpdate = (txs: Types.ReadableTx[]) => {
     const addressesCapacity: TAddressesCapacity = {}
 
-    txs.forEach((tx: TTx) => {
+    txs.forEach((tx: Types.ReadableTx) => {
       tx.outputs.reduce(this.accuOutput, addressesCapacity)
       tx.inputs.reduce(this.accuInput, addressesCapacity)
     });
@@ -203,7 +189,7 @@ export class BlockService extends NestSchedule {
     return addressesCapacity;
   }
 
-  async updateAddressCapacity(txs: TTx[]) {
+  async updateAddressCapacity(txs: Types.ReadableTx[]) {
     const addressesForUpdate: TAddressesCapacity = this.getAddressesForUpdate(txs);
 
     const addressesUpdater = Object.keys(addressesForUpdate).map(async address => {
