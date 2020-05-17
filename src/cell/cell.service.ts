@@ -72,7 +72,7 @@ export class CellService {
   }
 
 
-  public getTxs(params: Types.Indexer.QueryTxParams): Promise<any> {
+  public getTxHistories(params: Types.Indexer.QueryTxParams): Promise<any> {
     const { script, scriptType, order = 'desc', limit = '0x14' } = params;
     const payload = {
       id: 0,

@@ -30,6 +30,6 @@ declare namespace Indexer {
     order: string;
     limit: string;
     afterCursor?: string;
-    address: string;
+    address: string; // TODO
   }
 }

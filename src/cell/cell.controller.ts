@@ -16,15 +16,11 @@ export class CellController {
     return await this.cellService.getBalanceByPubkeyHash(pubkeyHash)
   }
 
-  @Post('getTxs')
-  async getTxs(@Body() params: any): Promise<any> {
-    // const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(params))
-    // const pubkeyHash = "0x" + parsedHex.toString().slice(6)
-    console.log('---> params: ', params)
-    const { address } = params;
+  @Post('getTxHistories')
+  async getTxHistories(@Body() params: any): Promise<any> {
+    const { args } = params.script // TODO params not null
 
-    const txs = await this.cellService.getTxs(params);
-    console.log('---> txs: ', JSON.stringify(txs))
+    const txs = await this.cellService.getTxHistories(params)
 
     for (const tx of txs) {
       // Object.values(tx.inputs).map(item => item.capacity);
@@ -33,38 +29,33 @@ export class CellController {
       const outSum = tx.outputs.reduce((prev, next) => prev + next.capacity, 0)
       const fee = inSum - outSum
       tx['fee'] = fee < 0 ? 0 : fee // handle cellBase condition
+
       let flag = false
-      tx['amount'] = 0;
+      tx['amount'] = 0
 
       for (const input of tx.inputs) {
-        if (input.address === address) {
+        if (input.pubkeyHash === args) {
           flag = true
           tx['income'] = false // 入账\收入
-
           for (const output of tx.outputs) {
-            if (output.address !== address) {
+            if (output.pubkeyHash !== args) {
               tx['amount'] = output.capacity
               break
             }
           }
-
           break
         }
       }
-
       if (!flag) {
         tx['income'] = true // 入账\收入
-
         for (const output of tx.outputs) {
-          if (output.address === address) {
+          if (output.pubkeyHash === args) {
             tx['amount'] = output.capacity
             break
           }
         }
       }
-
     }
-
     return txs
   }
 }

@@ -5,7 +5,6 @@ import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 import * as Types from '../types';
 import { Block } from '../model/block.entity';
 import { SyncStat } from '../model/syncstat.entity';
@@ -34,13 +33,7 @@ export class BlockService extends NestSchedule {
   private readonly ckb = this.ckbService.getCKB();
   private isSyncing = false;
 
-
   async parseBlockTxs(txs): Promise<Types.ReadableTx[]> {
-    const opts: ckbUtils.AddressOptions = {
-      prefix: ckbUtils.AddressPrefix.Testnet,
-      type: ckbUtils.AddressType.HashIdx,
-      codeHashOrCodeHashIndex: '0x00',
-    }
 
     const newTxs = []
     for (const tx of txs) {
@@ -80,7 +73,7 @@ export class BlockService extends NestSchedule {
           const _output = inputTxObj.outputs[parseInt(befIndex, 16)]
 
           newInput['capacity'] = parseInt(_output.capacity, 16)
-          newInput['address'] = ckbUtils.bech32Address(_output.lock.args, opts)
+          newInput['pubkeyHash'] = _output.lock.args
 
           newInputs.push(newInput)
         }
@@ -93,7 +86,7 @@ export class BlockService extends NestSchedule {
       for (const output of outputs) {
         const newOutput = {}
         newOutput['capacity'] = parseInt(output.capacity, 16)
-        newOutput['address'] = ckbUtils.bech32Address(output.lock.args, opts)
+        newOutput['pubkeyHash'] = output.lock.args
         newOutputs.push(newOutput)
       }
 
