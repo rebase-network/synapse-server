@@ -62,7 +62,7 @@ export class CellService {
   public async getBalanceByAddress(address: string): Promise<number> {
     const queryObj = {
       address,
-      isLive: true,
+      status: 'live',
     }
     const liveCells = await this.repo.find(queryObj);
 

@@ -25,7 +25,7 @@ export class CellDTO implements Readonly<CellDTO> {
 
   @ApiProperty({ required: true })
   @IsBoolean()
-  isLive: boolean;
+  status: string;
 
   public static from(dto: Partial<CellDTO>) {
     const it = new CellDTO();
@@ -34,7 +34,7 @@ export class CellDTO implements Readonly<CellDTO> {
     it.capacity = dto.capacity;
     it.txHash = dto.txHash;
     it.index = dto.index;
-    it.isLive = dto.isLive;
+    it.status = dto.status;
     return it;
   }
 
@@ -45,7 +45,7 @@ export class CellDTO implements Readonly<CellDTO> {
       capacity: entity.capacity,
       txHash: entity.txHash,
       index: entity.index,
-      isLive: entity.isLive,
+      status: entity.status,
     });
   }
 
@@ -56,7 +56,7 @@ export class CellDTO implements Readonly<CellDTO> {
     it.capacity = this.capacity;
     it.txHash = this.txHash;
     it.index = this.index;
-    it.isLive = this.isLive;
+    it.status = this.status;
     return it;
   }
 }

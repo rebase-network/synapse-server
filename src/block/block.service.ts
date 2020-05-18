@@ -1,4 +1,5 @@
 /// <reference types="@nervosnetwork/ckb-types" />
+import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 import * as _ from 'lodash';
 import { bech32Address } from '@nervosnetwork/ckb-sdk-utils';
 import { Injectable } from '@nestjs/common';
@@ -74,6 +75,7 @@ export class BlockService extends NestSchedule {
 
           newInput['capacity'] = parseInt(_output.capacity, 16)
           newInput['pubkeyHash'] = _output.lock.args
+          newInput['address'] = ckbUtils.bech32Address(_output.lock.args)
 
           newInputs.push(newInput)
         }
@@ -87,6 +89,7 @@ export class BlockService extends NestSchedule {
         const newOutput = {}
         newOutput['capacity'] = parseInt(output.capacity, 16)
         newOutput['pubkeyHash'] = output.lock.args
+        newOutput['address'] = ckbUtils.bech32Address(output.lock.args)
         newOutputs.push(newOutput)
       }
 
@@ -143,8 +146,10 @@ export class BlockService extends NestSchedule {
       tx.inputs.forEach(async (input: CKBComponents.CellInput) => {
         await this.killCell(input);
       })
+
       tx.outputs.forEach(async (output: CKBComponents.CellOutput, index: number) => {
-        await this.createCell(output, index, tx);
+        const outputData = tx.outputsData[index]
+        await this.createCell(block.header, output, index, tx, outputData);
       })
     })
 
@@ -194,10 +199,12 @@ export class BlockService extends NestSchedule {
       const oldAddr: Address = await this.getAddress(address);
       const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
       const newCapacity = oldCapacity + addressesForUpdate[address];
+
       if (oldAddr) {
         await this.addressRepo.update({ id: oldAddr.id }, { capacity: newCapacity });
         return;
       }
+
       const newAddr = new Address()
       newAddr.address = address;
       newAddr.capacity = newCapacity;
@@ -209,14 +216,14 @@ export class BlockService extends NestSchedule {
 
   async killCell(input: CKBComponents.CellInput) {
     const oldCellObj = {
-      isLive: true,
+      status: 'live',
       txHash: input.previousOutput.txHash,
       index: input.previousOutput.index
     }
     const oldCell: Cell = await this.cellRepo.findOne(oldCellObj);
-    if(oldCell && oldCell.isLive) {
+    if(oldCell && oldCell.status) {
       Object.assign(oldCell, {
-        isLive: false,
+        status: '', // 查一下
       });
       await this.cellRepo.save(oldCell);
     }
@@ -241,18 +248,43 @@ export class BlockService extends NestSchedule {
     await this.blockRepo.save(newBlock);
   }
 
-  async createCell(output, index, tx) {
-    const cellObj = {
-      isLive: true,
-      capacity: bigintStrToNum(output.capacity),
-      address: bech32Address(output.lock.args),
+  // TODO
+  async createCell(header, output, index, tx, outputData) {
+    console.log("block ==>",JSON.stringify(header));
+
+    // console.log(JSON.stringify(output));
+    console.log("tx =>", JSON.stringify(tx));
+
+    const findCellObj = {
       txHash: tx.hash,
-      index: `0x${index.toString(16)}`
+      index: `0x${index.toString(16)}`,
+      status: 'live',
+      lockArgs: output.lock.args,
     }
-    const savedCell = await this.cellRepo.findOne(cellObj)
+
+    const savedCell = await this.cellRepo.findOne(findCellObj)
     if (savedCell) return;
     const newCell: Cell = new Cell();
-    Object.assign(newCell, cellObj);
+
+    const createCellObj = {
+      blockNumber: parseInt(header.number, 16),
+      blockHash: header.hash,
+      timestamp: parseInt(header.timestamp,16),
+
+      txHash: tx.hash,
+      index: `0x${index.toString(16)}`,
+      status: 'live',
+      lockArgs: output.lock.args,
+      lockCodeHash: output.lock.codeHash,
+      lockHashType: output.lock.hashType,
+      capacity: bigintStrToNum(output.capacity),
+      address: bech32Address(output.lock.args),
+      outputData: outputData,
+      outputDataHash: '',
+      outputDataLen: ''
+    }
+
+    Object.assign(newCell, createCellObj);
 
     await this.cellRepo.save(newCell);
   }
