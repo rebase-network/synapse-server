@@ -9,6 +9,7 @@ import { Cell as CellEntity } from '../model/cell.entity';
 import { Cell } from './interfaces/cell.interface';
 import { configService } from '../config/config.service';
 import { BlockService } from '../block/block.service';
+import { bigintStrToNum } from '../util/number';
 
 @Injectable()
 export class CellService {
@@ -127,4 +128,44 @@ export class CellService {
     })).toPromise();
 
   }
+
+  public async getUnspentCells(lockArgs: string) {
+    const queryObj = {
+      lockArgs,
+      status: 'live'
+    }
+
+    const unspentCells = await this.repo.find(queryObj)
+    if (unspentCells.length === 0) {
+      return null
+    }
+
+    let newUnspentCells = []
+
+    for (const cell of unspentCells) {
+
+      let newCell = {
+        "blockHash": cell.blockHash,
+        "lock": {
+          "codeHash": cell.lockCodeHash,
+          "hashType": cell.lockHashType,
+          "args": cell.lockArgs
+        },
+        "outPoint": {
+          "txHash": cell.txHash,
+          "index": cell.index,
+        },
+        "outputDataLen": "",
+        "capacity": "0x"+(bigintStrToNum(cell.capacity.toString()).toString(16)),
+        "type": null,
+        "dataHash": cell.outputDataHash,
+        "status": cell.status,
+      }
+
+      newUnspentCells.push(newCell)
+    }
+
+    return newUnspentCells
+  }
+
 }

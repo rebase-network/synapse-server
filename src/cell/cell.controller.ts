@@ -64,4 +64,11 @@ export class CellController {
     const liveCells = await this.cellService.getLiveCells(params)
     return liveCells
   }
+
+  @Get('getUnspentCells/:lockArgs')
+  async getUnspentCells(@Param('lockArgs') lockArgs: string){
+    const unspentCells = await this.cellService.getUnspentCells(lockArgs)
+    return unspentCells
+  }
+
 }
