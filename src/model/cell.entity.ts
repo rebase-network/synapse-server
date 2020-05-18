@@ -55,7 +55,4 @@ export class Cell {
   @Column({ type: 'varchar' })
   outputDataHash: string;
 
-  @Column({ type: 'varchar' })
-  outputDataLen: string;
-
 }

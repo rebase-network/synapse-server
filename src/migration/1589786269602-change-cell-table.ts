@@ -17,11 +17,9 @@ export class changeCellTable1589786269602 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "cell" ADD "typeHashType" character varying DEFAULT null`, undefined);
         await queryRunner.query(`ALTER TABLE "cell" ADD "outputData" character varying NOT NULL`, undefined);
         await queryRunner.query(`ALTER TABLE "cell" ADD "outputDataHash" character varying NOT NULL`, undefined);
-        await queryRunner.query(`ALTER TABLE "cell" ADD "outputDataLen" character varying NOT NULL`, undefined);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "cell" DROP COLUMN "outputDataLen"`, undefined);
         await queryRunner.query(`ALTER TABLE "cell" DROP COLUMN "outputDataHash"`, undefined);
         await queryRunner.query(`ALTER TABLE "cell" DROP COLUMN "outputData"`, undefined);
         await queryRunner.query(`ALTER TABLE "cell" DROP COLUMN "typeHashType"`, undefined);
