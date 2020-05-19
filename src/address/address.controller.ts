@@ -6,10 +6,10 @@ import { AddressService } from './address.service'
 export class AddressController {
   constructor(private readonly addressService: AddressService) {}
 
-  @Get(':address')
-  async getCapacity(
-    @Param('address') address: string,
+  @Get(':lockHash')
+  async getAddressInfo(
+    @Param('lockHash') lockHash: string,
   ): Promise<{ capacity: string }> {
-    return await this.addressService.getCapacity(address);
+    return await this.addressService.getAddressInfo(lockHash);
   }
 }
