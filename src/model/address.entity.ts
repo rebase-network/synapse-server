@@ -5,9 +5,6 @@ export class Address {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column({ type: 'varchar' })
-  address: string;
-
   @Column('varchar')
   lockHash: string;
 
