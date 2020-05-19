@@ -35,6 +35,19 @@ export class BlockService extends NestSchedule {
   private readonly ckb = this.ckbService.getCKB();
   private isSyncing = false;
 
+  getReadableCell(output) {
+    const result = {};
+    result['capacity'] = parseInt(output.capacity, 16)
+    result['pubkeyHash'] = output.lock.args
+    result['address'] = ckbUtils.bech32Address(output.lock.args)
+    result['lockHash'] = ckbUtils.scriptToHash(output.lock);
+    result['lockCodeHash'] = output.lock.codeHash;
+    result['lockArgs'] = output.lock.args;
+    result['lockHashType'] = output.lock.hashType;
+
+    return result;
+  }
+
   async parseBlockTxs(txs): Promise<Types.ReadableTx[]> {
 
     const newTxs = []
@@ -61,7 +74,6 @@ export class BlockService extends NestSchedule {
       const newInputs = []
 
       for (const input of inputs) {
-        const newInput = {}
         const befTxHash = input.previousOutput.txHash
 
         // cellbase
@@ -72,12 +84,9 @@ export class BlockService extends NestSchedule {
 
           // const inputTxObj = await this.cellService.getTxByTxHash(befTxHash)
           const inputTxObj = (await this.ckb.rpc.getTransaction(befTxHash)).transaction
-          const _output = inputTxObj.outputs[parseInt(befIndex, 16)]
+          const output = inputTxObj.outputs[parseInt(befIndex, 16)]
 
-          newInput['capacity'] = parseInt(_output.capacity, 16)
-          newInput['pubkeyHash'] = _output.lock.args
-          newInput['address'] = ckbUtils.bech32Address(_output.lock.args)
-
+          const newInput = this.getReadableCell(output)
           newInputs.push(newInput)
         }
       }
@@ -87,10 +96,7 @@ export class BlockService extends NestSchedule {
       const newOutputs = []
 
       for (const output of outputs) {
-        const newOutput = {}
-        newOutput['capacity'] = parseInt(output.capacity, 16)
-        newOutput['pubkeyHash'] = output.lock.args
-        newOutput['address'] = ckbUtils.bech32Address(output.lock.args)
+        const newOutput = this.getReadableCell(output)
         newOutputs.push(newOutput)
       }
 
