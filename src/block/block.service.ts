@@ -38,7 +38,6 @@ export class BlockService extends NestSchedule {
   getReadableCell(output) {
     const result = {};
     result['capacity'] = parseInt(output.capacity, 16)
-    result['pubkeyHash'] = output.lock.args
     result['lockHash'] = ckbUtils.scriptToHash(output.lock);
     result['lockCodeHash'] = output.lock.codeHash;
     result['lockArgs'] = output.lock.args;

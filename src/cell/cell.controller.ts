@@ -26,11 +26,11 @@ export class CellController {
       tx['amount'] = 0
 
       for (const input of tx.inputs) {
-        if (input.pubkeyHash === args) {
+        if (input.lockArgs === args) {
           flag = true
           tx['income'] = false // 入账\收入
           for (const output of tx.outputs) {
-            if (output.pubkeyHash !== args) {
+            if (output.lockArgs !== args) {
               tx['amount'] = output.capacity
               break
             }
@@ -41,7 +41,7 @@ export class CellController {
       if (!flag) {
         tx['income'] = true // 入账\收入
         for (const output of tx.outputs) {
-          if (output.pubkeyHash === args) {
+          if (output.lockArgs === args) {
             tx['amount'] = output.capacity
             break
           }
