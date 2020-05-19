@@ -8,14 +8,6 @@ import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 export class CellController {
   constructor(private readonly cellService: CellService) { }
 
-  @Get('getBalanceByAddress/:address')
-  async getBalanceByAddress(@Param('address') address: string): Promise<number> {
-    const parsedHex = ckbUtils.bytesToHex(ckbUtils.parseAddress(address))
-    const pubkeyHash = "0x" + parsedHex.toString().slice(6) // blake160
-
-    return await this.cellService.getBalanceByPubkeyHash(pubkeyHash)
-  }
-
   @Post('getTxHistories')
   async getTxHistories(@Body() params: any): Promise<any> {
     const { args } = params.script // TODO params not null
