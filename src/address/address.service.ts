@@ -18,8 +18,8 @@ export class AddressService {
    * get capacity by address
    * @param lockHash the hash of lock script
    */
-  async getCapacity(address: string): Promise<{ capacity: string }> {
-    const result = await this.repo.findOne({ address });
+  async getCapacity(lockHash: string): Promise<{ capacity: string }> {
+    const result = await this.repo.findOne({ lockHash });
     if (!result) {
       return { capacity: '0' }
     }
