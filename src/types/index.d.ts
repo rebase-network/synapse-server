@@ -2,7 +2,11 @@ type hex = string;
 
 export interface ReadableCell {
   capacity: bigint;
-  address: string;
+  lockHash: string;
+  lockArgs: string;
+  lockCodeHash: string;
+  lockHashType: string;
+  address: string; // TODO: delete
 }
 
 export interface ReadableTx {
@@ -14,6 +18,17 @@ export interface ReadableTx {
   fee: number;
   income: boolean;
   amount: number;
+}
+
+
+interface LockhashCapacity {
+  capacity: string;
+  lockHash: string;
+  lockScript: CKBComponents.Script;
+}
+
+interface LockhashCapacityObj {
+  address: LockhashCapacity
 }
 
 export interface TxFromIndexer {
@@ -30,6 +45,6 @@ declare namespace Indexer {
     order: string;
     limit: string;
     afterCursor?: string;
-    address: string; // TODO
+    address: string; // TODO: delete me
   }
 }
