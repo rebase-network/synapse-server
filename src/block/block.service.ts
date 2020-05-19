@@ -265,8 +265,6 @@ export class BlockService extends NestSchedule {
 
   // TODO
   async createCell(header, output, index, tx, outputData, liveCell) {
-    console.log("cell.data.content ",liveCell.cell.data.content);
-
     const findCellObj = {
       txHash: tx.hash,
       index: `0x${index.toString(16)}`,
@@ -291,7 +289,7 @@ export class BlockService extends NestSchedule {
       capacity: bigintStrToNum(output.capacity),
       address: bech32Address(output.lock.args),
       outputData: outputData,
-      outputDataHash: liveCell.cell.data.hash,
+      outputDataHash: _.get(liveCell, 'cell.data.hash', ''),
       outputDataLen: '',
     }
 
