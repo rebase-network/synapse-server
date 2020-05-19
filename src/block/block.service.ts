@@ -39,7 +39,6 @@ export class BlockService extends NestSchedule {
     const result = {};
     result['capacity'] = parseInt(output.capacity, 16)
     result['pubkeyHash'] = output.lock.args
-    result['address'] = ckbUtils.bech32Address(output.lock.args)
     result['lockHash'] = ckbUtils.scriptToHash(output.lock);
     result['lockCodeHash'] = output.lock.codeHash;
     result['lockArgs'] = output.lock.args;
@@ -173,17 +172,16 @@ export class BlockService extends NestSchedule {
     console.log(`****************** End block ${height} ****************** `);
   }
 
-  async getAddress(address: string): Promise<Address> {
-    return await this.addressRepo.findOne({ address });
+  async getAddress(lockHash: string): Promise<Address> {
+    return await this.addressRepo.findOne({ lockHash });
   }
 
   accuOutput = (previous: Types.LockhashCapacity | any, cell: Types.ReadableCell) => {
-    const previousCapacity = _.get(previous[cell.address], 'capacity', BigInt(0));
+    const previousCapacity = _.get(previous[cell.lockHash], 'capacity', BigInt(0));
 
     const result = Object.assign(previous, {
-      [cell.address]: {
+      [cell.lockHash]: {
         capacity: BigInt(previousCapacity) + BigInt(cell.capacity),
-        lockHash: cell.lockHash,
         lockScript: {
           args: cell.lockArgs,
           hashType: cell.lockHashType,
@@ -196,11 +194,10 @@ export class BlockService extends NestSchedule {
   }
 
   accuInput = (previous: Types.LockhashCapacity, cell: Types.ReadableCell) => {
-    const previousCapacity = _.get(previous[cell.address], 'capacity', BigInt(0));
+    const previousCapacity = _.get(previous[cell.lockHash], 'capacity', BigInt(0));
     const result = Object.assign(previous, {
-      [cell.address]: {
+      [cell.lockHash]: {
         capacity: BigInt(previousCapacity) - BigInt(cell.capacity),
-        lockHash: cell.lockHash,
         lockScript: {
           args: cell.lockArgs,
           hashType: cell.lockHashType,
@@ -227,11 +224,11 @@ export class BlockService extends NestSchedule {
     try {
       const addressesForUpdate = this.getAddressesForUpdate(txs);
 
-      const addressesUpdater = Object.keys(addressesForUpdate).map(async address => {
-      const oldAddr: Address = await this.getAddress(address);
+      const addressesUpdater = Object.keys(addressesForUpdate).map(async lockHash => {
+      const oldAddr: Address = await this.getAddress(lockHash);
       console.log('===> oldAddr: ', oldAddr)
       const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
-      const newCapacity = oldCapacity + _.get(addressesForUpdate[address], 'capacity');
+      const newCapacity = oldCapacity + _.get(addressesForUpdate[lockHash], 'capacity');
 
       if (oldAddr) {
         await this.addressRepo.update({ id: oldAddr.id }, { capacity: newCapacity });
@@ -239,10 +236,9 @@ export class BlockService extends NestSchedule {
       }
 
       const newAddr = new Address();
-      const { lockScript, lockHash } = addressesForUpdate[address];
+      const { lockScript } = addressesForUpdate[lockHash];
       newAddr.capacity = newCapacity;
       newAddr.lockHash = lockHash;
-      newAddr.address = address; // todo delete me
       newAddr.lockArgs = lockScript.args;
       newAddr.lockCodeHash = lockScript.codeHash;
       newAddr.lockHashType = lockScript.hashType;
