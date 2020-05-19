@@ -174,7 +174,7 @@ export class BlockService extends NestSchedule {
   }
 
   async getAddress(address: string): Promise<Address> {
-    return await this.addressRepo.findOne({ address: address });
+    return await this.addressRepo.findOne({ address });
   }
 
   accuOutput = (previous: TAddressesCapacity | any, cell: Types.ReadableCell) => {
