@@ -129,9 +129,9 @@ export class CellService {
 
   }
 
-  public async getUnspentCells(lockArgs: string) {
+  public async getUnspentCells(lockHash: string) {
     const queryObj = {
-      lockArgs,
+      lockHash,
       status: 'live'
     }
 
@@ -140,11 +140,11 @@ export class CellService {
       return null
     }
 
-    let newUnspentCells = []
+    const newUnspentCells = []
 
     for (const cell of unspentCells) {
 
-      let newCell = {
+      const newCell = {
         "blockHash": cell.blockHash,
         "lock": {
           "codeHash": cell.lockCodeHash,
