@@ -177,27 +177,43 @@ export class BlockService extends NestSchedule {
     return await this.addressRepo.findOne({ address });
   }
 
-  accuOutput = (previous: TAddressesCapacity | any, cell: Types.ReadableCell) => {
-    const previousCapacity = _.get(previous, cell.address, BigInt(0));
+  accuOutput = (previous: Types.LockhashCapacity | any, cell: Types.ReadableCell) => {
+    const previousCapacity = _.get(previous[cell.address], 'capacity', BigInt(0));
 
     const result = Object.assign(previous, {
-      [cell.address]: BigInt(previousCapacity) + BigInt(cell.capacity)
+      [cell.address]: {
+        capacity: BigInt(previousCapacity) + BigInt(cell.capacity),
+        lockHash: cell.lockHash,
+        lockScript: {
+          args: cell.lockArgs,
+          hashType: cell.lockHashType,
+          codeHash: cell.lockCodeHash,
+        }
+      }
     })
 
     return result;
   }
 
-  accuInput = (previous: TAddressesCapacity, cell: Types.ReadableCell) => {
-    const previousCapacity = _.get(previous, cell.address, BigInt(0));
+  accuInput = (previous: Types.LockhashCapacity, cell: Types.ReadableCell) => {
+    const previousCapacity = _.get(previous[cell.address], 'capacity', BigInt(0));
     const result = Object.assign(previous, {
-      [cell.address]: BigInt(previousCapacity) - BigInt(cell.capacity)
+      [cell.address]: {
+        capacity: BigInt(previousCapacity) - BigInt(cell.capacity),
+        lockHash: cell.lockHash,
+        lockScript: {
+          args: cell.lockArgs,
+          hashType: cell.lockHashType,
+          codeHash: cell.lockCodeHash,
+        }
+      }
     })
 
     return result;
   }
 
   getAddressesForUpdate = (txs: Types.ReadableTx[]) => {
-    const addressesCapacity: TAddressesCapacity = {}
+    const addressesCapacity = {}
 
     txs.forEach((tx: Types.ReadableTx) => {
       tx.outputs.reduce(this.accuOutput, addressesCapacity)
@@ -208,26 +224,38 @@ export class BlockService extends NestSchedule {
   }
 
   async updateAddressCapacity(txs: Types.ReadableTx[]) {
-    const addressesForUpdate: TAddressesCapacity = this.getAddressesForUpdate(txs);
+    try {
+      const addressesForUpdate = this.getAddressesForUpdate(txs);
 
-    const addressesUpdater = Object.keys(addressesForUpdate).map(async address => {
+      const addressesUpdater = Object.keys(addressesForUpdate).map(async address => {
       const oldAddr: Address = await this.getAddress(address);
+      console.log('===> oldAddr: ', oldAddr)
       const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
-      const newCapacity = oldCapacity + addressesForUpdate[address];
+      const newCapacity = oldCapacity + _.get(addressesForUpdate[address], 'capacity');
 
       if (oldAddr) {
         await this.addressRepo.update({ id: oldAddr.id }, { capacity: newCapacity });
         return;
       }
 
-      const newAddr = new Address()
-      newAddr.address = address;
+      const newAddr = new Address();
+      const { lockScript, lockHash } = addressesForUpdate[address];
       newAddr.capacity = newCapacity;
+      newAddr.lockHash = lockHash;
+      newAddr.address = address; // todo delete me
+      newAddr.lockArgs = lockScript.args;
+      newAddr.lockCodeHash = lockScript.codeHash;
+      newAddr.lockHashType = lockScript.hashType;
+      console.log(' ----> newAddr: ', newAddr)
       await this.addressRepo.save(newAddr);
     });
 
     await Promise.all(addressesUpdater);
+
+  } catch (error) {
+    console.log('===> err is: ', error)
   }
+}
 
   async killCell(input: CKBComponents.CellInput) {
     const oldCellObj = {
