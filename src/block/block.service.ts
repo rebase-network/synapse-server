@@ -335,15 +335,15 @@ export class BlockService extends NestSchedule {
    * update last syncing block
    * @param tip block number
    */
-  async updateTip(tip: number): Promise<any> {
-    let block = await this.syncStatRepo.findOne();
-    if (block) {
-      block.tip = tip;
-    } else {
-      block = this.syncStatRepo.create({ tip })
+  async updateTip(tip: number) {
+    const statData = await this.syncStatRepo.findOne();
+    if (statData) {
+      statData.tip = tip;
+      await this.syncStatRepo.update({ id: statData.id}, { tip })
+      return;
     }
-    await this.syncStatRepo.save(block)
-    return { block };
+    const newData =Object.assign({}, statData, { tip })
+    this.syncStatRepo.create(newData)
   }
 
   /**
