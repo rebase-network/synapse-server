@@ -158,7 +158,7 @@ export class BlockService extends NestSchedule {
     console.timeEnd('updateAddressCapacity')
 
     console.time('updateCells')
-    this.updateCells(blockTxs);
+    this.updateCells(block);
     console.timeEnd('updateCells')
 
     console.timeEnd('====> updateBlockInfo total <=======')
