@@ -338,14 +338,20 @@ export class BlockService extends NestSchedule {
    * @param tip block number
    */
   async updateTip(tip: number) {
+    console.time('updateTip: findOne findOne findOne findOne 1111111 ');
     const statData = await this.syncStatRepo.findOne();
+    console.timeEnd('updateTip: findOne findOne findOne findOne 1111111 ');
     if (statData) {
       statData.tip = tip;
+      console.time('updateTip: update update update update 2222222 ');
       await this.syncStatRepo.update({ id: statData.id}, { tip })
+      console.timeEnd('updateTip: update update update update 2222222 ');
       return;
     }
+    console.time('updateTip: create create create 3333333 ');
     const newData =Object.assign({}, statData, { tip })
     this.syncStatRepo.create(newData)
+    console.timeEnd('updateTip: create create create 3333333 ');
   }
 
   /**
