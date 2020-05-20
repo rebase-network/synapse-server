@@ -137,11 +137,6 @@ export class BlockService extends NestSchedule {
     );
     console.timeEnd('this.ckb.rpc.getBlockByNumber')
 
-    console.time('find saved block')
-    const savedBlock = await this.blockRepo.findOne({ number: height });
-    console.timeEnd('find saved block')
-    if (savedBlock) return;
-
     const blockTxs = block.transactions;
 
     console.time('createBlock')
@@ -166,7 +161,7 @@ export class BlockService extends NestSchedule {
     console.log(`****************** End block ${height} ****************** `);
   }
 
-  updateCells(block) {
+  updateCells(block: CKBComponents.Block) {
     block.transactions.forEach(async (tx, inx) => {
 
       const outPoint: CKBComponents.OutPoint={
