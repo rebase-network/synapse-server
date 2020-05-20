@@ -129,19 +129,44 @@ export class BlockService extends NestSchedule {
    * @param height block number
    */
   async updateBlockInfo(height: number) {
+    console.time('====> updateBlockInfo total <=======')
+
+    console.time('this.ckb.rpc.getBlockByNumber')
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
+    console.timeEnd('this.ckb.rpc.getBlockByNumber')
 
+    console.time('find saved block')
     const savedBlock = await this.blockRepo.findOne({ number: height });
+    console.timeEnd('find saved block')
     if (savedBlock) return;
 
-    await this.createBlock(block, block.transactions.length);
+    const blockTxs = block.transactions;
 
+    console.time('createBlock')
+    await this.createBlock(block, blockTxs.length);
+    console.timeEnd('createBlock')
+
+    console.time('updateTip')
     await this.updateTip(height);
+    console.timeEnd('updateTip')
 
-    const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(block.transactions);
+    console.time('updateAddressCapacity')
+    const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(blockTxs);
+    await this.updateAddressCapacity(readableTxs);
+    console.timeEnd('updateAddressCapacity')
 
+    console.time('updateCells')
+    this.updateCells(blockTxs);
+    console.timeEnd('updateCells')
+
+    console.timeEnd('====> updateBlockInfo total <=======')
+
+    console.log(`****************** End block ${height} ****************** `);
+  }
+
+  updateCells(block) {
     block.transactions.forEach(async (tx, inx) => {
 
       const outPoint: CKBComponents.OutPoint={
@@ -160,9 +185,6 @@ export class BlockService extends NestSchedule {
         await this.createCell(block.header, output, index, tx, outputData, liveCell);
       })
     })
-
-    await this.updateAddressCapacity(readableTxs);
-    console.log(`****************** End block ${height} ****************** `);
   }
 
   async getAddress(lockHash: string): Promise<Address> {
