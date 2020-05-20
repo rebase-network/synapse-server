@@ -138,10 +138,9 @@ export class BlockService extends NestSchedule {
 
     const blockTxs = block.transactions;
 
-    // TODO: bring me back
-    // console.time('createBlock')
-    // await this.createBlock(block, blockTxs.length);
-    // console.timeEnd('createBlock')
+    console.time('createBlock')
+    await this.createBlock(block, blockTxs.length);
+    console.timeEnd('createBlock')
 
     console.time('updateTip')
     await this.updateTip(height);
