@@ -66,9 +66,6 @@ export class BlockService extends NestSchedule {
       const outputs = txObj.outputs
       const inputs = txObj.inputs
 
-      console.log("outputs num: ", outputs.length);
-      console.log("inputs num: ", inputs.length);
-
       const newInputs = []
 
       for (const input of inputs) {
@@ -120,7 +117,6 @@ export class BlockService extends NestSchedule {
 
     this.isSyncing = true;
 
-    console.log(`${tipNum - tipNumSynced} blocks need to be synced: ${tipNumSynced+1} - ${tipNum}`)
     for (let i = tipNumSynced+1; i <= tipNum; i++) {
       await this.updateBlockInfo(i)
     }
@@ -145,7 +141,6 @@ export class BlockService extends NestSchedule {
     await this.updateTip(height);
 
     const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(block.transactions);
-    console.log(`=================== Start block ${height} ======================`);
 
     block.transactions.forEach(async (tx, inx) => {
 
@@ -167,8 +162,6 @@ export class BlockService extends NestSchedule {
     })
 
     await this.updateAddressCapacity(readableTxs);
-
-    console.log(`****************** End block ${height} ****************** `);
   }
 
   async getAddress(lockHash: string): Promise<Address> {
@@ -225,7 +218,6 @@ export class BlockService extends NestSchedule {
 
       const addressesUpdater = Object.keys(addressesForUpdate).map(async lockHash => {
       const oldAddr: Address = await this.getAddress(lockHash);
-      console.log('===> oldAddr: ', oldAddr)
       const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
       const newCapacity = oldCapacity + _.get(addressesForUpdate[lockHash], 'capacity');
 
@@ -241,7 +233,6 @@ export class BlockService extends NestSchedule {
       newAddr.lockArgs = lockScript.args;
       newAddr.lockCodeHash = lockScript.codeHash;
       newAddr.lockHashType = lockScript.hashType;
-      console.log(' ----> newAddr: ', newAddr)
       await this.addressRepo.save(newAddr);
     });
 
@@ -334,7 +325,6 @@ export class BlockService extends NestSchedule {
       block = this.syncStatRepo.create({ tip })
     }
     await this.syncStatRepo.save(block)
-    console.log('Height updated to: ', tip)
     return { block };
   }
 
