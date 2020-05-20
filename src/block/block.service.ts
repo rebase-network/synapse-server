@@ -162,6 +162,7 @@ export class BlockService extends NestSchedule {
     })
 
     await this.updateAddressCapacity(readableTxs);
+    console.log(`****************** End block ${height} ****************** `);
   }
 
   async getAddress(lockHash: string): Promise<Address> {
