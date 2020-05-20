@@ -92,13 +92,17 @@ export class CellService {
 
   }
 
-  public async getUnspentCells(lockHash: string) {
+  public async getUnspentCells(lockHash: string, lockScript, amount?: number) {
     const queryObj = {
       lockHash,
+      lockArgs: lockScript.args,
+      lockCodeHash: lockScript.codeHash,
+      lockHashType: lockScript.hashType,
       status: 'live'
     }
 
     const unspentCells = await this.repo.find(queryObj)
+
     if (unspentCells.length === 0) {
       return null
     }

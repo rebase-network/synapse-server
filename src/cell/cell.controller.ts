@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Param, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseInterceptors } from '@nestjs/common';
 import { CellService } from './cell.service';
 import { LoggingInterceptor } from '../logging.interceptor';
-import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 
 @Controller('cell')
 @UseInterceptors(LoggingInterceptor)
@@ -58,9 +57,19 @@ export class CellController {
   }
 
   @Get('getUnspentCells/:lockHash')
-  async getUnspentCells(@Param('lockHash') lockHash: string){
-    const unspentCells = await this.cellService.getUnspentCells(lockHash)
-    return unspentCells
+  async getUnspentCells(
+    @Param('lockHash') lockHash: string,
+    @Query('lockArgs') lockArgs: string,
+    @Query('lockCodeHash') lockCodeHash: string,
+    @Query('lockHashType') lockHashType: string,
+  ) {
+    const lockScript ={
+      args: lockArgs,
+      codeHash: lockCodeHash,
+      hashType: lockHashType,
+    }
+
+    return await this.cellService.getUnspentCells(lockHash, lockScript)
   }
 
 }
