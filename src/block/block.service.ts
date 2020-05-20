@@ -1,6 +1,5 @@
 /// <reference types="@nervosnetwork/ckb-types" />
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
-
 import * as _ from 'lodash';
 import { bech32Address } from '@nervosnetwork/ckb-sdk-utils';
 import { Injectable } from '@nestjs/common';
@@ -139,9 +138,10 @@ export class BlockService extends NestSchedule {
 
     const blockTxs = block.transactions;
 
-    console.time('createBlock')
-    await this.createBlock(block, blockTxs.length);
-    console.timeEnd('createBlock')
+    // TODO: bring me back
+    // console.time('createBlock')
+    // await this.createBlock(block, blockTxs.length);
+    // console.timeEnd('createBlock')
 
     console.time('updateTip')
     await this.updateTip(height);
