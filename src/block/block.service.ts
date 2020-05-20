@@ -128,7 +128,7 @@ export class BlockService extends NestSchedule {
    * @param height block number
    */
   async updateBlockInfo(height: number) {
-    console.time('====> updateBlockInfo total <=======')
+    console.time('=====================> updateBlockInfo total <=====================')
 
     console.time('this.ckb.rpc.getBlockByNumber')
     const block = await this.ckb.rpc.getBlockByNumber(
@@ -153,33 +153,12 @@ export class BlockService extends NestSchedule {
     console.timeEnd('updateAddressCapacity')
 
     console.time('updateCells')
-    this.updateCells(block);
+    await this.updateCells(block);
     console.timeEnd('updateCells')
 
-    console.timeEnd('====> updateBlockInfo total <=======')
+    console.timeEnd('=====================> updateBlockInfo total <=====================')
 
     console.log(`****************** End block ${height} ****************** `);
-  }
-
-  updateCells(block: CKBComponents.Block) {
-    block.transactions.forEach(async (tx, inx) => {
-
-      const outPoint: CKBComponents.OutPoint={
-        txHash: tx.hash,
-        index: `0x${inx.toString(16)}`
-      }
-
-      const liveCell = await this.ckb.rpc.getLiveCell(outPoint, true);
-
-      tx.inputs.forEach(async (input: CKBComponents.CellInput) => {
-        await this.killCell(input);
-      })
-
-      tx.outputs.forEach(async (output: CKBComponents.CellOutput, index: number) => {
-        const outputData = tx.outputsData[index]
-        await this.createCell(block.header, output, index, tx, outputData, liveCell);
-      })
-    })
   }
 
   async getAddress(lockHash: string): Promise<Address> {
@@ -235,31 +214,54 @@ export class BlockService extends NestSchedule {
       const addressesForUpdate = this.getAddressesForUpdate(txs);
 
       const addressesUpdater = Object.keys(addressesForUpdate).map(async lockHash => {
-      const oldAddr: Address = await this.getAddress(lockHash);
-      const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
-      const newCapacity = oldCapacity + _.get(addressesForUpdate[lockHash], 'capacity');
+        const oldAddr: Address = await this.getAddress(lockHash);
+        const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
+        const newCapacity = oldCapacity + _.get(addressesForUpdate[lockHash], 'capacity');
 
-      if (oldAddr) {
-        await this.addressRepo.update({ id: oldAddr.id }, { capacity: newCapacity });
-        return;
+        if (oldAddr) {
+          await this.addressRepo.update({ id: oldAddr.id }, { capacity: newCapacity });
+          return;
+        }
+
+        const newAddr = new Address();
+        const { lockScript } = addressesForUpdate[lockHash];
+        newAddr.capacity = newCapacity;
+        newAddr.lockHash = lockHash;
+        newAddr.lockArgs = lockScript.args;
+        newAddr.lockCodeHash = lockScript.codeHash;
+        newAddr.lockHashType = lockScript.hashType;
+        await this.addressRepo.save(newAddr);
+      });
+
+      await Promise.all(addressesUpdater);
+
+    } catch (error) {
+      console.log('===> err is: ', error)
+    }
+  }
+
+
+  async updateCells(block: CKBComponents.Block) {
+    const cellUpdater = block.transactions.map(async (tx, inx) => {
+
+      const outPoint: CKBComponents.OutPoint={
+        txHash: tx.hash,
+        index: `0x${inx.toString(16)}`
       }
 
-      const newAddr = new Address();
-      const { lockScript } = addressesForUpdate[lockHash];
-      newAddr.capacity = newCapacity;
-      newAddr.lockHash = lockHash;
-      newAddr.lockArgs = lockScript.args;
-      newAddr.lockCodeHash = lockScript.codeHash;
-      newAddr.lockHashType = lockScript.hashType;
-      await this.addressRepo.save(newAddr);
-    });
+      const liveCell = await this.ckb.rpc.getLiveCell(outPoint, true);
 
-    await Promise.all(addressesUpdater);
+      tx.inputs.forEach(async (input: CKBComponents.CellInput) => {
+        await this.killCell(input);
+      })
 
-  } catch (error) {
-    console.log('===> err is: ', error)
+      tx.outputs.forEach(async (output: CKBComponents.CellOutput, index: number) => {
+        const outputData = tx.outputsData[index]
+        await this.createCell(block.header, output, index, tx, outputData, liveCell);
+      })
+    })
+    await Promise.all(cellUpdater)
   }
-}
 
   async killCell(input: CKBComponents.CellInput) {
     const oldCellObj = {
