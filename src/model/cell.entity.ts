@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity({ name: 'cell' })
 export class Cell {
@@ -8,6 +8,7 @@ export class Cell {
   @Column({ type: 'bigint' })
   blockNumber: number;
 
+  @Index("idx-cell-blockHash")
   @Column({ type: 'varchar' })
   blockHash: string;
 
@@ -21,6 +22,7 @@ export class Cell {
   address: string;
 
   // outPoint
+  @Index("idx-cell-txHash")
   @Column({ type: 'varchar' })
   txHash: string;
 
@@ -31,6 +33,7 @@ export class Cell {
   @Column({ type: 'varchar' })
   status: string;
 
+  @Index("idx-cell-lockArgs")
   @Column({ type: 'varchar' })
   lockArgs: string;
 

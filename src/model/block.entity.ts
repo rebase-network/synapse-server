@@ -1,11 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity({ name: 'block' })
 export class Block {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index("idx-block-hash")
   @Column('varchar', { length: 66 })
   hash: string;
 
