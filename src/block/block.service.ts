@@ -308,7 +308,12 @@ export class BlockService extends NestSchedule {
     const existCell = await this.cellRepo.findOne(findCellObj)
     if (existCell) return;
     const newCell: Cell = new Cell();
-
+    const lockScript = {
+        args: output.lock.args,
+        codeHash: output.lock.codeHash,
+        hashType: output.lock.hashType
+    }
+    const lockHash = ckbUtils.scriptToHash(lockScript)
     const newCellObj = {
       blockNumber: parseInt(header.number, 16),
       blockHash: header.hash,
@@ -316,6 +321,7 @@ export class BlockService extends NestSchedule {
       txHash: tx.hash,
       index: `0x${index.toString(16)}`,
       status: 'live',
+      lockHash: lockHash,
       lockArgs: output.lock.args,
       lockCodeHash: output.lock.codeHash,
       lockHashType: output.lock.hashType,
