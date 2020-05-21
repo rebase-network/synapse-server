@@ -128,35 +128,23 @@ export class BlockService extends NestSchedule {
    * @param height block number
    */
   async updateBlockInfo(height: number) {
-    console.time('=====================> updateBlockInfo total <=====================')
 
-    console.time('this.ckb.rpc.getBlockByNumber')
+    console.time('updateBlockInfo total <=====================')
+
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
     );
-    console.timeEnd('this.ckb.rpc.getBlockByNumber')
 
     const blockTxs = block.transactions;
-
-    console.time('createBlock')
     await this.createBlock(block, blockTxs.length);
-    console.timeEnd('createBlock')
 
-    console.time('updateTip')
     await this.updateTip(height);
-    console.timeEnd('updateTip')
-
-    console.time('updateAddressCapacity')
     const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(blockTxs);
     await this.updateAddressCapacity(readableTxs);
-    console.timeEnd('updateAddressCapacity')
-
-    console.time('updateCells')
     await this.updateCells(block);
     console.timeEnd('updateCells')
 
-    console.timeEnd('=====================> updateBlockInfo total <=====================')
-
+    console.timeEnd('updateBlockInfo total <=====================')
     console.log(`****************** End block ${height} ****************** `);
   }
 
@@ -343,20 +331,14 @@ export class BlockService extends NestSchedule {
    * @param tip block number
    */
   async updateTip(tip: number) {
-    console.time('updateTip: findOne findOne findOne findOne 1111111 ');
     const statData = await this.syncStatRepo.findOne();
-    console.timeEnd('updateTip: findOne findOne findOne findOne 1111111 ');
     if (statData) {
       statData.tip = tip;
-      console.time('updateTip: update update update update 2222222 ');
       await this.syncStatRepo.update({ id: statData.id}, { tip })
-      console.timeEnd('updateTip: update update update update 2222222 ');
       return;
     }
-    console.time('updateTip: create create create 3333333 ');
     const newData =Object.assign({}, statData, { tip })
     this.syncStatRepo.create(newData)
-    console.timeEnd('updateTip: create create create 3333333 ');
   }
 
   /**
