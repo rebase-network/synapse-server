@@ -1,3 +1,8 @@
+/*
+ * @Author: River
+ * @Date: 2020-05-20 13:29:54
+ * @LastEditTime: 2020-05-21 14:45:36
+ */ 
 import { Controller, Get, Post, Body, Param, Query, UseInterceptors } from '@nestjs/common';
 import { CellService } from './cell.service';
 import { LoggingInterceptor } from '../logging.interceptor';
@@ -58,18 +63,10 @@ export class CellController {
 
   @Get('getUnspentCells/:lockHash')
   async getUnspentCells(
-    @Param('lockHash') lockHash: string,
-    @Query('lockArgs') lockArgs: string,
-    @Query('lockCodeHash') lockCodeHash: string,
-    @Query('lockHashType') lockHashType: string,
+    @Param('lockHash') lockHash: string
   ) {
-    const lockScript ={
-      args: lockArgs,
-      codeHash: lockCodeHash,
-      hashType: lockHashType,
-    }
 
-    return await this.cellService.getUnspentCells(lockHash, lockScript)
+    return await this.cellService.getUnspentCells(lockHash)
   }
 
 }

@@ -92,12 +92,9 @@ export class CellService {
 
   }
 
-  public async getUnspentCells(lockHash: string, lockScript, amount?: number) {
+  public async getUnspentCells(lockHash: string,amount?: number) {
     const queryObj = {
       lockHash,
-      lockArgs: lockScript.args,
-      lockCodeHash: lockScript.codeHash,
-      lockHashType: lockScript.hashType,
       status: 'live'
     }
 
