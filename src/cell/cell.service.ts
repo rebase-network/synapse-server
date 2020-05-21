@@ -95,6 +95,8 @@ export class CellService {
   public async getUnspentCells(lockHash: string,amount?: number) {
     const queryObj = {
       lockHash,
+      typeCodeHash: null,
+      outputData: '0x',
       status: 'live'
     }
 
