@@ -337,8 +337,8 @@ export class BlockService extends NestSchedule {
       await this.syncStatRepo.update({ id: statData.id}, { tip })
       return;
     }
-    const newData =Object.assign({}, statData, { tip })
-    this.syncStatRepo.create(newData)
+    const newData = this.syncStatRepo.create(Object.assign({}, statData, { tip }));
+    await this.syncStatRepo.save(newData);
   }
 
   /**
