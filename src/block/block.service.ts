@@ -337,7 +337,7 @@ export class BlockService extends NestSchedule {
       capacity: bigintStrToNum(output.capacity),
       address: '', // TODO delete it
       outputData: outputData,
-      outputDataHash: _.get(liveCell, 'cell.data.hash', ""),
+      outputDataHash: _.get(liveCell, 'cell.data.hash', "0x"),
     };
 
     Object.assign(newCell, newCellObj);
