@@ -23,10 +23,12 @@ interface TAddressesCapacity {
 export class BlockService extends NestSchedule {
   constructor(
     @InjectRepository(Block) private readonly blockRepo: Repository<Block>,
-    @InjectRepository(SyncStat) private readonly syncStatRepo: Repository<SyncStat>,
+    @InjectRepository(SyncStat)
+    private readonly syncStatRepo: Repository<SyncStat>,
     @InjectRepository(Cell) private readonly cellRepo: Repository<Cell>,
-    @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
-    private readonly ckbService: CkbService
+    @InjectRepository(Address)
+    private readonly addressRepo: Repository<Address>,
+    private readonly ckbService: CkbService,
   ) {
     super();
   }
@@ -36,7 +38,7 @@ export class BlockService extends NestSchedule {
 
   getReadableCell(output) {
     const result = {};
-    result['capacity'] = parseInt(output.capacity, 16)
+    result['capacity'] = parseInt(output.capacity, 16);
     result['lockHash'] = ckbUtils.scriptToHash(output.lock);
     result['lockCodeHash'] = output.lock.codeHash;
     result['lockArgs'] = output.lock.args;
@@ -46,59 +48,59 @@ export class BlockService extends NestSchedule {
   }
 
   async parseBlockTxs(txs): Promise<Types.ReadableTx[]> {
-
-    const newTxs = []
+    const newTxs = [];
     for (const tx of txs) {
-      const newTx = {}
+      const newTx = {};
 
-      newTx['hash'] = tx.tx_hash
+      newTx['hash'] = tx.tx_hash;
       if (tx.block_number) {
-        newTx['blockNum'] = parseInt(tx.block_number, 16)
-        const header = await this.ckb.rpc.getHeaderByNumber(tx.block_number)
+        newTx['blockNum'] = parseInt(tx.block_number, 16);
+        const header = await this.ckb.rpc.getHeaderByNumber(tx.block_number);
         if (!header) continue;
-        newTx['timestamp'] = parseInt(header.timestamp, 16)
+        newTx['timestamp'] = parseInt(header.timestamp, 16);
       }
 
       // const txObj = await this.cellService.getTxByTxHash(tx.tx_hash)
-      const txObj = (await this.ckb.rpc.getTransaction(tx.hash || tx.tx_hash)).transaction
+      const txObj = (await this.ckb.rpc.getTransaction(tx.hash || tx.tx_hash))
+        .transaction;
 
-      const outputs = txObj.outputs
-      const inputs = txObj.inputs
+      const outputs = txObj.outputs;
+      const inputs = txObj.inputs;
 
-      const newInputs = []
+      const newInputs = [];
 
       for (const input of inputs) {
-        const befTxHash = input.previousOutput.txHash
+        const befTxHash = input.previousOutput.txHash;
 
         // cellbase
         if (befTxHash !== EMPTY_TX_HASH) {
-
           // 0x000......00000 是出块奖励，inputs为空，cellbase
-          const befIndex = input.previousOutput.index
+          const befIndex = input.previousOutput.index;
 
           // const inputTxObj = await this.cellService.getTxByTxHash(befTxHash)
-          const inputTxObj = (await this.ckb.rpc.getTransaction(befTxHash)).transaction
-          const output = inputTxObj.outputs[parseInt(befIndex, 16)]
+          const inputTxObj = (await this.ckb.rpc.getTransaction(befTxHash))
+            .transaction;
+          const output = inputTxObj.outputs[parseInt(befIndex, 16)];
 
-          const newInput = this.getReadableCell(output)
-          newInputs.push(newInput)
+          const newInput = this.getReadableCell(output);
+          newInputs.push(newInput);
         }
       }
 
-      newTx['inputs'] = newInputs
+      newTx['inputs'] = newInputs;
 
-      const newOutputs = []
+      const newOutputs = [];
 
       for (const output of outputs) {
-        const newOutput = this.getReadableCell(output)
-        newOutputs.push(newOutput)
+        const newOutput = this.getReadableCell(output);
+        newOutputs.push(newOutput);
       }
 
-      newTx['outputs'] = newOutputs
-      newTxs.push(newTx)
+      newTx['outputs'] = newOutputs;
+      newTxs.push(newTx);
     }
 
-    return newTxs
+    return newTxs;
   }
 
   /**
@@ -116,8 +118,8 @@ export class BlockService extends NestSchedule {
 
     this.isSyncing = true;
 
-    for (let i = tipNumSynced+1; i <= tipNum; i++) {
-      await this.updateBlockInfo(i)
+    for (let i = tipNumSynced + 1; i <= tipNum; i++) {
+      await this.updateBlockInfo(i);
     }
 
     this.isSyncing = false;
@@ -128,8 +130,7 @@ export class BlockService extends NestSchedule {
    * @param height block number
    */
   async updateBlockInfo(height: number) {
-
-    console.time('updateBlockInfo')
+    console.time('updateBlockInfo');
 
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
@@ -143,7 +144,7 @@ export class BlockService extends NestSchedule {
     await this.updateAddressCapacity(readableTxs);
     await this.updateCells(block);
 
-    console.timeEnd('updateBlockInfo')
+    console.timeEnd('updateBlockInfo');
     console.log(`****************** End block ${height} ****************** `);
   }
 
@@ -151,8 +152,15 @@ export class BlockService extends NestSchedule {
     return await this.addressRepo.findOne({ lockHash });
   }
 
-  accuOutput = (previous: Types.LockhashCapacity | any, cell: Types.ReadableCell) => {
-    const previousCapacity = _.get(previous[cell.lockHash], 'capacity', BigInt(0));
+  accuOutput = (
+    previous: Types.LockhashCapacity | any,
+    cell: Types.ReadableCell,
+  ) => {
+    const previousCapacity = _.get(
+      previous[cell.lockHash],
+      'capacity',
+      BigInt(0),
+    );
 
     const result = Object.assign(previous, {
       [cell.lockHash]: {
@@ -161,15 +169,19 @@ export class BlockService extends NestSchedule {
           args: cell.lockArgs,
           hashType: cell.lockHashType,
           codeHash: cell.lockCodeHash,
-        }
-      }
-    })
+        },
+      },
+    });
 
     return result;
-  }
+  };
 
   accuInput = (previous: Types.LockhashCapacity, cell: Types.ReadableCell) => {
-    const previousCapacity = _.get(previous[cell.lockHash], 'capacity', BigInt(0));
+    const previousCapacity = _.get(
+      previous[cell.lockHash],
+      'capacity',
+      BigInt(0),
+    );
     const result = Object.assign(previous, {
       [cell.lockHash]: {
         capacity: BigInt(previousCapacity) - BigInt(cell.capacity),
@@ -177,86 +189,96 @@ export class BlockService extends NestSchedule {
           args: cell.lockArgs,
           hashType: cell.lockHashType,
           codeHash: cell.lockCodeHash,
-        }
-      }
-    })
+        },
+      },
+    });
 
     return result;
-  }
+  };
 
   getAddressesForUpdate = (txs: Types.ReadableTx[]) => {
-    const addressesCapacity = {}
+    const addressesCapacity = {};
 
     txs.forEach((tx: Types.ReadableTx) => {
-      tx.outputs.reduce(this.accuOutput, addressesCapacity)
-      tx.inputs.reduce(this.accuInput, addressesCapacity)
+      tx.outputs.reduce(this.accuOutput, addressesCapacity);
+      tx.inputs.reduce(this.accuInput, addressesCapacity);
     });
 
     return addressesCapacity;
-  }
+  };
 
   async updateAddressCapacity(txs: Types.ReadableTx[]) {
     try {
       const addressesForUpdate = this.getAddressesForUpdate(txs);
 
-      const addressesUpdater = Object.keys(addressesForUpdate).map(async lockHash => {
-        const oldAddr: Address = await this.getAddress(lockHash);
-        const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
-        const newCapacity = oldCapacity + _.get(addressesForUpdate[lockHash], 'capacity');
+      const addressesUpdater = Object.keys(addressesForUpdate).map(
+        async lockHash => {
+          const oldAddr: Address = await this.getAddress(lockHash);
+          const oldCapacity = oldAddr ? BigInt(oldAddr.capacity) : BigInt(0);
+          const newCapacity =
+            oldCapacity + _.get(addressesForUpdate[lockHash], 'capacity');
 
-        if (oldAddr) {
-          await this.addressRepo.update({ id: oldAddr.id }, { capacity: newCapacity });
-          return;
-        }
+          if (oldAddr) {
+            await this.addressRepo.update(
+              { id: oldAddr.id },
+              { capacity: newCapacity },
+            );
+            return;
+          }
 
-        const newAddr = new Address();
-        const { lockScript } = addressesForUpdate[lockHash];
-        newAddr.capacity = newCapacity;
-        newAddr.lockHash = lockHash;
-        newAddr.lockArgs = lockScript.args;
-        newAddr.lockCodeHash = lockScript.codeHash;
-        newAddr.lockHashType = lockScript.hashType;
-        await this.addressRepo.save(newAddr);
-      });
+          const newAddr = new Address();
+          const { lockScript } = addressesForUpdate[lockHash];
+          newAddr.capacity = newCapacity;
+          newAddr.lockHash = lockHash;
+          newAddr.lockArgs = lockScript.args;
+          newAddr.lockCodeHash = lockScript.codeHash;
+          newAddr.lockHashType = lockScript.hashType;
+          await this.addressRepo.save(newAddr);
+        },
+      );
 
       await Promise.all(addressesUpdater);
-
     } catch (error) {
-      console.log('===> err is: ', error)
+      console.log('===> err is: ', error);
     }
   }
 
-
   async updateCells(block: CKBComponents.Block) {
     const cellUpdater = block.transactions.map(async (tx, inx) => {
-
-      const outPoint: CKBComponents.OutPoint={
-        txHash: tx.hash,
-        index: `0x${inx.toString(16)}`
-      }
-
-      const liveCell = await this.ckb.rpc.getLiveCell(outPoint, true);
-
       tx.inputs.forEach(async (input: CKBComponents.CellInput) => {
         await this.killCell(input);
-      })
+      });
 
-      tx.outputs.forEach(async (output: CKBComponents.CellOutput, index: number) => {
-        const outputData = tx.outputsData[index]
-        await this.createCell(block.header, output, index, tx, outputData, liveCell);
-      })
-    })
-    await Promise.all(cellUpdater)
+      tx.outputs.forEach(
+        async (output: CKBComponents.CellOutput, index: number) => {
+          const outPoint: CKBComponents.OutPoint = {
+            txHash: tx.hash,
+            index: `0x${index.toString(16)}`,
+          };
+          const liveCell = await this.ckb.rpc.getLiveCell(outPoint, true);
+          const outputData = tx.outputsData[index];
+          await this.createCell(
+            block.header,
+            output,
+            index,
+            tx,
+            outputData,
+            liveCell,
+          );
+        },
+      );
+    });
+    await Promise.all(cellUpdater);
   }
 
   async killCell(input: CKBComponents.CellInput) {
     const oldCellObj = {
       status: 'live',
       txHash: input.previousOutput.txHash,
-      index: input.previousOutput.index
-    }
+      index: input.previousOutput.index,
+    };
     const oldCell: Cell = await this.cellRepo.findOne(oldCellObj);
-    if(oldCell && oldCell.status) {
+    if (oldCell && oldCell.status) {
       Object.assign(oldCell, {
         status: 'dead', // 查一下
       });
@@ -265,7 +287,7 @@ export class BlockService extends NestSchedule {
   }
 
   async createBlock(block, txCount) {
-    const header = block.header
+    const header = block.header;
 
     const blockObj = {
       number: parseInt(header.number, 16),
@@ -275,8 +297,8 @@ export class BlockService extends NestSchedule {
       // epochLength: 0,
       timestamp: parseInt(header.timestamp, 16),
       transactionCount: txCount,
-      dao: header.dao
-    }
+      dao: header.dao,
+    };
 
     const newBlock: Block = new Block();
     Object.assign(newBlock, blockObj);
@@ -290,17 +312,17 @@ export class BlockService extends NestSchedule {
       index: `0x${index.toString(16)}`,
       status: 'live',
       lockArgs: output.lock.args,
-    }
+    };
 
-    const existCell = await this.cellRepo.findOne(findCellObj)
+    const existCell = await this.cellRepo.findOne(findCellObj);
     if (existCell) return;
     const newCell: Cell = new Cell();
     const lockScript = {
-        args: output.lock.args,
-        codeHash: output.lock.codeHash,
-        hashType: output.lock.hashType
-    }
-    const lockHash = ckbUtils.scriptToHash(lockScript)
+      args: output.lock.args,
+      codeHash: output.lock.codeHash,
+      hashType: output.lock.hashType,
+    };
+    const lockHash = ckbUtils.scriptToHash(lockScript);
     const newCellObj = {
       blockNumber: parseInt(header.number, 16),
       blockHash: header.hash,
@@ -315,14 +337,13 @@ export class BlockService extends NestSchedule {
       capacity: bigintStrToNum(output.capacity),
       address: '', // TODO delete it
       outputData: outputData,
-      outputDataHash: _.get(liveCell, 'cell.data.hash', EMPTY_DATA_HASH),
-    }
+      outputDataHash: _.get(liveCell, 'cell.data.hash', ""),
+    };
 
     Object.assign(newCell, newCellObj);
 
     await this.cellRepo.save(newCell);
   }
-
 
   /**
    * update last syncing block
@@ -332,10 +353,12 @@ export class BlockService extends NestSchedule {
     const statData = await this.syncStatRepo.findOne();
     if (statData) {
       statData.tip = tip;
-      await this.syncStatRepo.update({ id: statData.id}, { tip })
+      await this.syncStatRepo.update({ id: statData.id }, { tip });
       return;
     }
-    const newData = this.syncStatRepo.create(Object.assign({}, statData, { tip }));
+    const newData = this.syncStatRepo.create(
+      Object.assign({}, statData, { tip }),
+    );
     await this.syncStatRepo.save(newData);
   }
 
