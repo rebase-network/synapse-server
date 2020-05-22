@@ -13,7 +13,7 @@ import { Cell } from '../model/cell.entity';
 import { Address } from '../model/address.entity';
 import { CkbService } from '../ckb/ckb.service';
 import { bigintStrToNum } from '../util/number';
-import { EMPTY_TX_HASH } from '../util/constant';
+import { EMPTY_TX_HASH, EMPTY_DATA_HASH } from '../util/constant';
 
 interface TAddressesCapacity {
   string?: number;
@@ -313,10 +313,9 @@ export class BlockService extends NestSchedule {
       lockCodeHash: output.lock.codeHash,
       lockHashType: output.lock.hashType,
       capacity: bigintStrToNum(output.capacity),
-      address: bech32Address(output.lock.args),
+      address: '', // TODO delete it
       outputData: outputData,
-      outputDataHash: _.get(liveCell, 'cell.data.hash', ''),
-      outputDataLen: '',
+      outputDataHash: _.get(liveCell, 'cell.data.hash', EMPTY_DATA_HASH),
     }
 
     Object.assign(newCell, newCellObj);

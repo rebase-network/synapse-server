@@ -121,7 +121,6 @@ export class CellService {
           "txHash": cell.txHash,
           "index": cell.index,
         },
-        "outputDataLen": "",
         "capacity": "0x"+(bigintStrToNum(cell.capacity.toString()).toString(16)),
         "type": null,
         "dataHash": cell.outputDataHash,
