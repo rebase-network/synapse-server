@@ -59,7 +59,7 @@ export class CellService {
       const txs = resp.data.result.objects
       console.log("txs num: ", txs.length);
 
-      if (txs.length === 0) return null;
+      if (txs.length === 0) return [];
       const txsWithUniqueHash: Types.TxFromIndexer[] = _.uniqBy(txs, 'tx_hash');;
       return this.blockService.parseBlockTxs(txsWithUniqueHash)
     })).toPromise();
@@ -86,7 +86,7 @@ export class CellService {
       const liveCells = resp.data.result.objects
       console.log("liveCells num: ", liveCells.length);
 
-      if (liveCells.length === 0) return null;
+      if (liveCells.length === 0) return [];
       return liveCells
     })).toPromise();
 
@@ -103,7 +103,7 @@ export class CellService {
     const unspentCells = await this.repo.find(queryObj)
 
     if (unspentCells.length === 0) {
-      return null
+      return []
     }
 
     const newUnspentCells = []
