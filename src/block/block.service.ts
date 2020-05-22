@@ -129,7 +129,7 @@ export class BlockService extends NestSchedule {
    */
   async updateBlockInfo(height: number) {
 
-    console.time('updateBlockInfo total <=====================')
+    console.time('updateBlockInfo')
 
     const block = await this.ckb.rpc.getBlockByNumber(
       '0x' + height.toString(16),
@@ -142,9 +142,8 @@ export class BlockService extends NestSchedule {
     const readableTxs: Types.ReadableTx[] = await this.parseBlockTxs(blockTxs);
     await this.updateAddressCapacity(readableTxs);
     await this.updateCells(block);
-    console.timeEnd('updateCells')
 
-    console.timeEnd('updateBlockInfo total <=====================')
+    console.timeEnd('updateBlockInfo')
     console.log(`****************** End block ${height} ****************** `);
   }
 
