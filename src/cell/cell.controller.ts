@@ -56,11 +56,14 @@ export class CellController {
     return liveCells
   }
 
-  @Get('getUnspentCells/:lockHash/:isEmpty')
-  async getUnspentCells(@Param('lockHash') lockHash: string,
-    @Param('isEmpty') isEmpty: string
-  ) {
-    return await this.cellService.getUnspentCells(lockHash,isEmpty)
+  @Get('getUnspentCells/:lockHash')
+  async getUnspentCells(@Param('lockHash') lockHash: string, @Query() params) {
+    // getUnspentCells/123456?isEmpty=true
+
+    const _isEmpty = params.isEmpty?.toLowerCase()
+    const isEmpty = _isEmpty == 'true' ?  true : false
+
+    return await this.cellService.getUnspentCells(lockHash, isEmpty)
   }
 
 }

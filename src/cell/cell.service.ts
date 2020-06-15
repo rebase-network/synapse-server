@@ -93,15 +93,17 @@ export class CellService {
 
   }
 
-  public async getUnspentCells(lockHash: string, isEmpty: string,amount?: number) {
+  public async getUnspentCells(lockHash: string, isEmpty: boolean, amount?: number) {
     const queryObj = {
         lockHash,
         typeCodeHash: null,
         status: 'live'
-    }; 
-    if(isEmpty === "true"){
-        queryObj['outputData'] = '0x'
+    };
+
+    if(isEmpty){
+      queryObj['outputData'] = '0x'
     }
+
     const unspentCells = await this.repo.find(queryObj)
 
     if (unspentCells.length === 0) {
