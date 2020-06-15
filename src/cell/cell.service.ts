@@ -111,8 +111,7 @@ export class CellService {
     const newUnspentCells = []
 
     for (const cell of unspentCells) {
-        const dataLength = ckbUtils.hexToBytes(cell.outputData).length;
-        
+      const dataLength = ckbUtils.hexToBytes(cell.outputData).length;
       const newCell = {
         "blockHash": cell.blockHash,
         "lock": {
@@ -124,6 +123,7 @@ export class CellService {
           "txHash": cell.txHash,
           "index": cell.index,
         },
+        "outputData": cell.outputData,
         "outputDataLen": '0x' + dataLength.toString(16),
         "capacity": "0x"+(bigintStrToNum(cell.capacity.toString()).toString(16)),
         "type": null,
