@@ -93,15 +93,15 @@ export class CellService {
 
   }
 
-  public async getUnspentCells(lockHash: string, isEmpty = true,amount?: number) {
+  public async getUnspentCells(lockHash: string, isEmpty: string,amount?: number) {
     const queryObj = {
         lockHash,
         typeCodeHash: null,
         status: 'live'
     }; 
-    if(isEmpty){
+    if(isEmpty === "true"){
         queryObj['outputData'] = '0x'
-    } 
+    }
     const unspentCells = await this.repo.find(queryObj)
 
     if (unspentCells.length === 0) {
@@ -134,22 +134,4 @@ export class CellService {
     }
     return newUnspentCells
   }
- 
-//   "blockHash":"0x9c50c8ce9f5a3cb0d0b535e16333d1e1afdff52abcb254dc6b3147f054e793c3",
-//   "lock":{
-//       "codeHash":"0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-//       "hashType":"type",
-//       "args":"0x9b84887ab2ea170998cff9895675dcd29cd26d4d"
-//   },
-//   "outPoint":{
-//       "txHash":"0xb131ddd29ad63788763b598cabba9a7df23b2dee8f787bed6adcb0ffa7e82415",
-//       "index":"0x0"
-//   },
-//   "outputDataLen":"0x7",
-//   "capacity":"0x1954fc400",
-//   "cellbase":false,
-//   "type":null,
-//   "dataHash":"0xf276b360de7dc210833e8efb1f19927ecd8ff89e94c72d29dc20813fe8368564",
-//   "status":"live"
-
 }

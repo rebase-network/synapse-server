@@ -57,11 +57,9 @@ export class CellController {
   }
 
   @Get('getUnspentCells/:lockHash/:isEmpty')
-  async getUnspentCells(
-    @Param('lockHash') lockHash: string,
-    @Param('isEmpty') isEmpty: boolean
+  async getUnspentCells(@Param('lockHash') lockHash: string,
+    @Param('isEmpty') isEmpty: string
   ) {
-
     return await this.cellService.getUnspentCells(lockHash,isEmpty)
   }
 
