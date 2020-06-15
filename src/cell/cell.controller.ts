@@ -1,8 +1,3 @@
-/*
- * @Author: River
- * @Date: 2020-05-20 13:29:54
- * @LastEditTime: 2020-05-21 14:45:36
- */ 
 import { Controller, Get, Post, Body, Param, Query, UseInterceptors } from '@nestjs/common';
 import { CellService } from './cell.service';
 import { LoggingInterceptor } from '../logging.interceptor';
@@ -61,12 +56,13 @@ export class CellController {
     return liveCells
   }
 
-  @Get('getUnspentCells/:lockHash')
+  @Get('getUnspentCells/:lockHash/:isEmpty')
   async getUnspentCells(
-    @Param('lockHash') lockHash: string
+    @Param('lockHash') lockHash: string,
+    @Param('isEmpty') isEmpty: boolean
   ) {
 
-    return await this.cellService.getUnspentCells(lockHash)
+    return await this.cellService.getUnspentCells(lockHash,isEmpty)
   }
 
 }

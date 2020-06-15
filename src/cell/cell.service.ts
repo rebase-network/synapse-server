@@ -10,6 +10,7 @@ import { Cell } from './interfaces/cell.interface';
 import { configService } from '../config/config.service';
 import { BlockService } from '../block/block.service';
 import { bigintStrToNum } from '../util/number';
+import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils'
 
 @Injectable()
 export class CellService {
@@ -92,14 +93,15 @@ export class CellService {
 
   }
 
-  public async getUnspentCells(lockHash: string,amount?: number) {
+  public async getUnspentCells(lockHash: string, isEmpty = true,amount?: number) {
     const queryObj = {
-      lockHash,
-      typeCodeHash: null,
-      outputData: '0x',
-      status: 'live'
-    }
-
+        lockHash,
+        typeCodeHash: null,
+        status: 'live'
+    }; 
+    if(isEmpty){
+        queryObj['outputData'] = '0x'
+    } 
     const unspentCells = await this.repo.find(queryObj)
 
     if (unspentCells.length === 0) {
@@ -109,7 +111,8 @@ export class CellService {
     const newUnspentCells = []
 
     for (const cell of unspentCells) {
-
+        const dataLength = ckbUtils.hexToBytes(cell.outputData).length;
+        
       const newCell = {
         "blockHash": cell.blockHash,
         "lock": {
@@ -121,16 +124,32 @@ export class CellService {
           "txHash": cell.txHash,
           "index": cell.index,
         },
+        "outputDataLen": '0x' + dataLength.toString(16),
         "capacity": "0x"+(bigintStrToNum(cell.capacity.toString()).toString(16)),
         "type": null,
         "dataHash": cell.outputDataHash,
         "status": cell.status,
       }
-
       newUnspentCells.push(newCell)
     }
-
     return newUnspentCells
   }
+ 
+//   "blockHash":"0x9c50c8ce9f5a3cb0d0b535e16333d1e1afdff52abcb254dc6b3147f054e793c3",
+//   "lock":{
+//       "codeHash":"0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+//       "hashType":"type",
+//       "args":"0x9b84887ab2ea170998cff9895675dcd29cd26d4d"
+//   },
+//   "outPoint":{
+//       "txHash":"0xb131ddd29ad63788763b598cabba9a7df23b2dee8f787bed6adcb0ffa7e82415",
+//       "index":"0x0"
+//   },
+//   "outputDataLen":"0x7",
+//   "capacity":"0x1954fc400",
+//   "cellbase":false,
+//   "type":null,
+//   "dataHash":"0xf276b360de7dc210833e8efb1f19927ecd8ff89e94c72d29dc20813fe8368564",
+//   "status":"live"
 
 }
