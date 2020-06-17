@@ -9,15 +9,18 @@ import { Cell as CellEntity } from '../model/cell.entity';
 import { Cell } from './interfaces/cell.interface';
 import { configService } from '../config/config.service';
 import { BlockService } from '../block/block.service';
+import { AddressService } from '../address/address.service';
 import { bigintStrToNum } from '../util/number';
-import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils'
+import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
+import {CKB_TOKEN_DECIMALS} from '../util/constant';
 
 @Injectable()
 export class CellService {
   constructor(
     @InjectRepository(CellEntity) private readonly repo: Repository<CellEntity>,
     private readonly httpService: HttpService,
-    private readonly blockService: BlockService
+    private readonly blockService: BlockService,
+    private readonly addressService: AddressService
   ) { }
 
   public async create(cell: Cell): Promise<Cell> {
@@ -93,7 +96,8 @@ export class CellService {
 
   }
 
-  public async getUnspentCells(lockHash: string, isEmpty: boolean, amount?: number) {
+  public async getUnspentCells(lockHash: string, isEmpty: boolean, capacity?: number) {
+
     const queryObj = {
         lockHash,
         typeCodeHash: null,
@@ -104,7 +108,41 @@ export class CellService {
       queryObj['outputData'] = '0x'
     }
 
-    const unspentCells = await this.repo.find(queryObj)
+    if (capacity == 0) {
+      return []
+    }
+
+    const fakeFee = 1 * CKB_TOKEN_DECIMALS
+    const ckbcapacity = capacity * CKB_TOKEN_DECIMALS
+    const _totalcapacity = await this.addressService.getAddressInfo(lockHash)
+    const totalcapacity = BigInt(_totalcapacity.capacity)
+
+    if (totalcapacity < ckbcapacity) { // 余额不足
+      return []
+    }
+
+    const sendCapactity = ckbcapacity + 61 * CKB_TOKEN_DECIMALS + fakeFee
+    let unspentCells = []
+    const cell = await this.repo.createQueryBuilder('cell')
+    .where(queryObj)
+    .andWhere('cell.capacity >:sendCapactity', {
+      sendCapactity: sendCapactity
+    }).getOne()
+
+    if (cell) {
+      unspentCells.push(cell)
+    } else {
+      const cells = await this.repo.createQueryBuilder('cell').where(queryObj).orderBy('cell.capacity', 'DESC').limit(10)
+      unspentCells = await cells.getMany()
+
+      const sumCapacity = unspentCells.reduce((pre, cur) => {
+        return pre + BigInt(cur.capacity)
+      }, BigInt(0))
+
+      if (sumCapacity < sendCapactity) { // 小于
+        unspentCells = await this.repo.find(queryObj)
+      }
+    }
 
     if (unspentCells.length === 0) {
       return []
@@ -134,6 +172,7 @@ export class CellService {
       }
       newUnspentCells.push(newCell)
     }
+
     return newUnspentCells
   }
 }

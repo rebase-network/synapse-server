@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Query, UseInterceptors } from '@nestjs/common';
 import { CellService } from './cell.service';
 import { LoggingInterceptor } from '../logging.interceptor';
+import * as _ from 'lodash';
 
 @Controller('cell')
 @UseInterceptors(LoggingInterceptor)
@@ -58,12 +59,19 @@ export class CellController {
 
   @Get('getUnspentCells/:lockHash')
   async getUnspentCells(@Param('lockHash') lockHash: string, @Query() params) {
-    // getUnspentCells/123456?isEmpty=true
+    // getUnspentCells/123456?isEmpty=true&capacity=100
 
     const _isEmpty = params.isEmpty?.toLowerCase()
-    const isEmpty = _isEmpty == 'true' ?  true : false
+    const isEmpty = _isEmpty == 'true' ? true : false
 
-    return await this.cellService.getUnspentCells(lockHash, isEmpty)
+    let capacity = 0
+    if(_.isEmpty( params.capacity)){
+      capacity = 62
+    }else{
+      capacity = parseInt(params.capacity)
+    }
+
+    return await this.cellService.getUnspentCells(lockHash, isEmpty, capacity)
   }
 
 }
