@@ -118,30 +118,45 @@ export class CellService {
     const totalcapacity = BigInt(_totalcapacity.capacity)
 
     if (totalcapacity < ckbcapacity) { // 余额不足
-      return []
+      // throw new Error('Lack of balance')
+      return {data:[], msg: 'Lack of balance', code: '1001'}
     }
 
     const sendCapactity = ckbcapacity + 61 * CKB_TOKEN_DECIMALS + fakeFee
     let unspentCells = []
+
     const cell = await this.repo.createQueryBuilder('cell')
     .where(queryObj)
     .andWhere('cell.capacity >:sendCapactity', {
       sendCapactity: sendCapactity
     }).getOne()
 
-    if (cell) {
+    if(cell) {
       unspentCells.push(cell)
     } else {
-      const cells = await this.repo.createQueryBuilder('cell').where(queryObj).orderBy('cell.capacity', 'DESC').limit(10)
-      unspentCells = await cells.getMany()
 
-      const sumCapacity = unspentCells.reduce((pre, cur) => {
-        return pre + BigInt(cur.capacity)
-      }, BigInt(0))
+      let sumCapacity =0
+      let page = 0
+      const step = 50
 
-      if (sumCapacity < sendCapactity) { // 小于
-        unspentCells = await this.repo.find(queryObj)
+      do {
+        const cells = await this.repo.createQueryBuilder('cell')
+        .where(queryObj)
+        .orderBy('cell.capacity', 'DESC')
+        .limit(step).offset(step * page)
+
+        const newcells = await cells.getMany()
+        unspentCells = _.concat(unspentCells, newcells);
+
+        sumCapacity = unspentCells.reduce((pre, cur) => {
+          return pre + BigInt(cur.capacity)
+        }, BigInt(0))
+
+        page += 1
+
       }
+      while (sumCapacity < sendCapactity);
+
     }
 
     if (unspentCells.length === 0) {
