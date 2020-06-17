@@ -98,6 +98,7 @@ export class CellService {
 
   public async getUnspentCells(lockHash: string, isEmpty: boolean, capacity?: number) {
 
+    console.time("getUnspentCells")
     const queryObj = {
         lockHash,
         typeCodeHash: null,
@@ -187,6 +188,8 @@ export class CellService {
       }
       newUnspentCells.push(newCell)
     }
+
+    console.timeEnd("getUnspentCells")
 
     return newUnspentCells
   }
