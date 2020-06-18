@@ -116,8 +116,13 @@ export class CellService {
 
     const fakeFee = 1 * CKB_TOKEN_DECIMALS
     const ckbcapacity = capacity * CKB_TOKEN_DECIMALS
-    const _totalcapacity = await this.addressService.getAddressInfo(lockHash)
-    const totalcapacity = BigInt(_totalcapacity.capacity)
+
+    // TODO 2种方式获取余额不一样
+    // await this.addressService.getAddressInfo(lockHash)
+    const _totalcapacity = await this.repo.createQueryBuilder("cell")
+    .select("SUM(cell.capacity)", "sum").where(queryObj).getRawOne()
+
+    const totalcapacity = BigInt(_totalcapacity.sum || 0)
 
     if (totalcapacity < ckbcapacity) { // 余额不足
       throw new ServiceError('lack of capacity', '1001')
@@ -136,7 +141,7 @@ export class CellService {
       unspentCells.push(cell)
     } else {
 
-      let sumCapacity =0
+      let sumCapacity = 0
       let page = 0
       const step = 50
 
