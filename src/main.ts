@@ -1,22 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configService } from './config/config.service';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import {ServiceExceptionsFilter} from './exceptionFilters/serviceException.filter'
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ServiceExceptionsFilter } from './exception/serviceException.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalFilters(new ServiceExceptionsFilter())
+  app.useGlobalFilters(new ServiceExceptionsFilter());
 
   const options = {
-    "origin": "*",
-    "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-    "preflightContinue": false,
-    "optionsSuccessStatus": 200,
-    "credentials": false,
-  }
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 200,
+    credentials: false,
+  };
 
-  app.enableCors(options)
+  app.enableCors(options);
 
   if (!configService.isProduction()) {
     const options = new DocumentBuilder()

@@ -1,11 +1,8 @@
 /// <reference types="@nervosnetwork/ckb-types" />
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 import * as _ from 'lodash';
-import { bech32Address } from '@nervosnetwork/ckb-sdk-utils';
 import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as Types from '../types';
 import { Block } from '../model/block.entity';
 import { SyncStat } from '../model/syncstat.entity';
@@ -13,7 +10,11 @@ import { Cell } from '../model/cell.entity';
 import { Address } from '../model/address.entity';
 import { CkbService } from '../ckb/ckb.service';
 import { bigintStrToNum } from '../util/number';
-import { EMPTY_TX_HASH, EMPTY_DATA_HASH } from '../util/constant';
+import { EMPTY_TX_HASH } from '../util/constant';
+import { CellRepository } from '../cell/cell.repository';
+import { AddressRepository } from '../address/address.repository';
+import { BlockRepository } from './block.repository';
+import { SyncstatRepository } from '../syncstat/syncstat.repository';
 
 interface TAddressesCapacity {
   string?: number;
@@ -22,13 +23,13 @@ interface TAddressesCapacity {
 @Injectable()
 export class BlockService extends NestSchedule {
   constructor(
-    @InjectRepository(Block) private readonly blockRepo: Repository<Block>,
-    @InjectRepository(SyncStat)
-    private readonly syncStatRepo: Repository<SyncStat>,
-    @InjectRepository(Cell) private readonly cellRepo: Repository<Cell>,
-    @InjectRepository(Address)
-    private readonly addressRepo: Repository<Address>,
     private readonly ckbService: CkbService,
+
+    private readonly blockRepo: BlockRepository,
+    private readonly cellRepo: CellRepository,
+    private readonly addressRepo: AddressRepository,
+    private readonly syncStatRepo: SyncstatRepository,
+
   ) {
     super();
   }
@@ -337,7 +338,7 @@ export class BlockService extends NestSchedule {
       capacity: bigintStrToNum(output.capacity),
       address: '', // TODO delete it
       outputData: outputData,
-      outputDataHash: _.get(liveCell, 'cell.data.hash', "0x"),
+      outputDataHash: _.get(liveCell, 'cell.data.hash', '0x'),
     };
 
     Object.assign(newCell, newCellObj);
@@ -368,7 +369,6 @@ export class BlockService extends NestSchedule {
   async getLastestBlock(): Promise<SyncStat> {
     return await this.syncStatRepo.findOne();
   }
-
   /**
    * get the latest block header on CKB chain
    */

@@ -1,11 +1,8 @@
 /// <reference types="@nervosnetwork/ckb-types" />
-import { Injectable, HttpService, BadRequestException } from '@nestjs/common';
+import { Injectable, HttpService } from '@nestjs/common';
 import { map } from 'rxjs/operators';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as _ from 'lodash';
 import * as Types from '../types';
-import { Cell as CellEntity } from '../model/cell.entity';
 import { Cell } from './interfaces/cell.interface';
 import { configService } from '../config/config.service';
 import { BlockService } from '../block/block.service';
@@ -13,19 +10,20 @@ import { AddressService } from '../address/address.service';
 import { bigintStrToNum } from '../util/number';
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 import {CKB_TOKEN_DECIMALS} from '../util/constant';
-import {ServiceError} from '../exceptionFilters/serviceError'
+import {ServiceError} from '../exception/serviceError'
+import { CellRepository } from './cell.repository';
 
 @Injectable()
 export class CellService {
   constructor(
-    @InjectRepository(CellEntity) private readonly repo: Repository<CellEntity>,
+    private cellRepository: CellRepository,
     private readonly httpService: HttpService,
     private readonly blockService: BlockService,
     private readonly addressService: AddressService
-  ) { }
+  ) {}
 
   public async create(cell: Cell): Promise<Cell> {
-    return await this.repo.save(cell)
+    return await this.cellRepository.save(cell)
   }
 
   public async getBalanceByAddress(address: string): Promise<number> {
@@ -33,10 +31,9 @@ export class CellService {
       address,
       status: 'live',
     }
-    const liveCells = await this.repo.find(queryObj);
+    const liveCells = await this.cellRepository.find(queryObj);
 
     if (liveCells.length === 0) return 0;
-
     const result = liveCells.reduce((pre, cur, index, arr) => {
       return pre + Number(cur.capacity)
     }, 0)
@@ -57,7 +54,6 @@ export class CellService {
         limit,
       ]
     }
-
     const observable = this.httpService.post(configService.CKB_INDEXER_ENDPOINT, payload)
 
     return observable.pipe(map(resp => {
@@ -126,11 +122,7 @@ export class CellService {
     const sendCapactity = ckbcapacity + 61 * CKB_TOKEN_DECIMALS + fakeFee
     let unspentCells = []
 
-    const cell = await this.repo.createQueryBuilder('cell')
-    .where(queryObj)
-    .andWhere('cell.capacity >:sendCapactity', {
-      sendCapactity: sendCapactity
-    }).getOne()
+    const cell = await this.cellRepository.queryByQueryObjAndCapacity(queryObj,sendCapactity);
 
     if(cell) {
       unspentCells.push(cell)
@@ -141,23 +133,16 @@ export class CellService {
       const step = 50
 
       do {
-        const cells = await this.repo.createQueryBuilder('cell')
-        .where(queryObj)
-        .orderBy('cell.capacity', 'DESC')
-        .limit(step).offset(step * page)
-
+        const cells = await this.cellRepository.queryByQueryObjAndStepPage(queryObj,step,page);
         const newcells = await cells.getMany()
         unspentCells = _.concat(unspentCells, newcells);
 
         sumCapacity = unspentCells.reduce((pre, cur) => {
           return pre + BigInt(cur.capacity)
         }, BigInt(0))
-
         page += 1
-
       }
       while (sumCapacity < sendCapactity);
-
     }
 
     if (unspentCells.length === 0) {

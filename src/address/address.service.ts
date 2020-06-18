@@ -1,15 +1,14 @@
 /// <reference types="@nervosnetwork/ckb-types" />
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Address as AddressEntity } from '../model/address.entity'
 import { CkbService } from '../ckb/ckb.service';
+import { AddressRepository } from './address.repository';
 
 @Injectable()
 export class AddressService {
   constructor(
     private readonly ckbService: CkbService,
-    @InjectRepository(AddressEntity) private readonly repo: Repository<AddressEntity>,
+
+    private readonly addressRepository: AddressRepository,
   ) { }
 
   private readonly ckb = this.ckbService.getCKB();
@@ -19,7 +18,7 @@ export class AddressService {
    * @param lockHash the hash of lock script
    */
   async getAddressInfo(lockHash: string): Promise<{ capacity: string }> {
-    const result = await this.repo.findOne({ lockHash });
+    const result = await this.addressRepository.findOne({ lockHash });
     if (!result) {
       return { capacity: '0' }
     }
