@@ -1,5 +1,5 @@
 /// <reference types="@nervosnetwork/ckb-types" />
-import { Injectable, HttpService } from '@nestjs/common';
+import { Injectable, HttpService, BadRequestException } from '@nestjs/common';
 import { map } from 'rxjs/operators';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -120,7 +120,8 @@ export class CellService {
 
     if (totalcapacity < ckbcapacity) { // 余额不足
       // throw new Error('Lack of balance')
-      return {data:[], msg: 'Lack of balance', code: '1001'}
+      // return {data:[], msg: 'Lack of balance', code: '1001'}
+      throw new BadRequestException('Lack of balance');
     }
 
     const sendCapactity = ckbcapacity + 61 * CKB_TOKEN_DECIMALS + fakeFee
@@ -188,7 +189,6 @@ export class CellService {
       }
       newUnspentCells.push(newCell)
     }
-
     console.timeEnd("getUnspentCells")
 
     return newUnspentCells
