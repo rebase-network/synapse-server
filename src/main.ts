@@ -2,11 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configService } from './config/config.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ServiceExceptionsFilter } from './exception/serviceException.filter';
+import { ApiInterceptor } from './interceptor/api.interceptor';
+import { HttpExceptionFilter } from './exception/httpException.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalFilters(new ServiceExceptionsFilter());
+//   app.useGlobalFilters(new ServiceExceptionsFilter());
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new ApiInterceptor());
 
   const options = {
     origin: '*',
