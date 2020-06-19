@@ -5,6 +5,8 @@ import Core from '@nervosnetwork/ckb-sdk-core';
 import { AddressPrefix } from '@nervosnetwork/ckb-sdk-utils';
 import * as http from 'http';
 import { configService } from '../config/config.service';
+// const Agent = require('agentkeepalive');
+import * as Agent from 'agentkeepalive';
 
 @Injectable()
 export class CkbService {
@@ -15,8 +17,15 @@ export class CkbService {
     this.ckb = new Core(configService.CKB_RPC_ENDPOINT);
     this.chain = AddressPrefix.Mainnet;
 
+    const keepaliveAgent = new Agent({
+        maxSockets: 100,
+        maxFreeSockets: 10,
+        timeout: 60000, // active socket keepalive for 60 seconds
+        freeSocketTimeout: 30000, // free socket keepalive for 30 seconds
+      });
+
     this.ckb.rpc.setNode({
-      httpAgent: new http.Agent({ keepAlive: true }),
+      httpAgent: new http.Agent(keepaliveAgent),
     } as CKBComponents.Node);
 
     this.ckb.rpc.getBlockchainInfo().then(result => {
