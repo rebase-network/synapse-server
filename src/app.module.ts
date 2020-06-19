@@ -8,6 +8,7 @@ import { BlockModule } from './block/block.module';
 import { CellModule } from './cell/cell.module';
 import { CkbModule } from './ckb/ckb.module';
 import { AddressModule } from './address/address.module';
+import { SyncstatModule } from './syncstat/syncstat.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { AddressModule } from './address/address.module';
     BlockModule,
     CellModule,
     CkbModule,
-    AddressModule
+    AddressModule,
+    SyncstatModule
   ],
   controllers: [AppController],
   providers: [AppService],

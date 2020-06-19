@@ -1,0 +1,31 @@
+// http-exception.filter.ts
+import {
+    ArgumentsHost,
+    Catch,
+    ExceptionFilter,
+    HttpException
+  } from '@nestjs/common'
+  import { ApiException } from './api.exception'
+
+  // 该装饰器告诉filter要捕获哪些类型异常
+  @Catch(HttpException)
+  export class HttpExceptionFilter implements ExceptionFilter {
+    catch(exception, host: ArgumentsHost): void {
+      const ctx = host.switchToHttp()
+      const response = ctx.getResponse()
+      const request = ctx.getRequest()
+      const status = exception.getStatus()
+
+      if (exception instanceof ApiException) {
+        response.status(status).json({
+          errMsg: (exception as ApiException).getErrorMessage(),
+          errCode: (exception as ApiException).gerErrorCode(),
+          data: '',
+          path: request.url
+        })
+      } else {
+        // 处理非手动抛出的情况
+        response.status(status).json((exception as HttpException).getResponse())
+      }
+    }
+  }
