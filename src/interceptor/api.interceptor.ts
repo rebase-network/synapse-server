@@ -7,14 +7,14 @@ import {
   } from '@nestjs/common'
   import { Observable } from 'rxjs'
   import { map } from 'rxjs/operators'
-  
+
   // 约定好的返回格式
   interface Response<T> {
-    code: number
-    msg: string
+    errCode: number
+    errMsg: string
     data: T
   }
-  
+
   @Injectable()
   export class ApiInterceptor<T> implements NestInterceptor<T, Response<T>> {
     intercept(
@@ -24,8 +24,8 @@ import {
       return next.handle().pipe(
         map(data => {
           return {
-            code: 0,
-            msg: 'success',
+            errCode: 0,
+            errMsg: '',
             data
           }
         })
