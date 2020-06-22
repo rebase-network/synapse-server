@@ -194,4 +194,20 @@ export class CellService {
 
     return newUnspentCells;
   }
+
+  public async getCellsByLockHashAndTypeScripts(lockHash, typeScripts) {
+    const typeScriptsCells = [];
+    for (const typeScript of typeScripts) {
+      const cells = await this.cellRepository.queryCellsByLockHashAndTypeScript(
+        lockHash,
+        typeScript.hashType,
+        typeScript.codeHash,
+        typeScript.args,
+      );
+      if (!_.isEmpty(cells)) {
+        typeScriptsCells.push(cells);
+      }
+    }
+    return typeScriptsCells;
+  }
 }

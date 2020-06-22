@@ -81,4 +81,13 @@ export class CellController {
 
     return await this.cellService.getUnspentCells(lockHash, isEmpty, capacity);
   }
+
+  @Post('getCellsByLockHashAndTypeScripts')
+  async getCellsByLockHashAndTypeScripts(@Body() params: any): Promise<any> {
+    const { lockHash, typeScripts } = params;
+    return await this.cellService.getCellsByLockHashAndTypeScripts(
+      lockHash,
+      typeScripts,
+    );
+  }
 }
