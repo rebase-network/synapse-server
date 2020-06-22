@@ -26,10 +26,6 @@ export class CellRepository extends Repository<Cell> {
     typeCodeHash,
     typeArgs
   ) {
-    console.log(lockHash);
-    console.log(typeHashType);
-    console.log(typeCodeHash);
-    console.log(typeArgs);
     return await this.createQueryBuilder('cell')
       .where('cell.lockHash = :lockHash', {
         lockHash: lockHash,
