@@ -2,7 +2,7 @@
  * @Author: your name
  * @Date: 2020-05-21 14:08:44
  * @LastEditTime: 2020-05-21 14:10:48
- */ 
+ */
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity({ name: 'cell' })
@@ -52,9 +52,11 @@ export class Cell {
   @Column({ type: 'varchar' })
   lockHashType: string;
 
+  @Index("idx-cell-typeArgs")
   @Column({ type: 'varchar', default: null, nullable: true } )
   typeArgs: string;
 
+  @Index("idx-cell-typeCodeHash")
   @Column({ type: 'varchar', default: null, nullable: true } )
   typeCodeHash: string;
 
