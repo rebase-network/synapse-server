@@ -20,11 +20,11 @@ export class CellRepository extends Repository<Cell> {
       .offset(step * page);
   }
 
- public async queryCellsByLockHashAndTypeScript(
+  public async queryCellsByLockHashAndTypeScript(
     lockHash,
     typeHashType,
     typeCodeHash,
-    typeArgs
+    typeArgs,
   ) {
     return await this.createQueryBuilder('cell')
       .where('cell.lockHash = :lockHash', {
@@ -38,6 +38,23 @@ export class CellRepository extends Repository<Cell> {
       })
       .andWhere('cell.typeArgs =  :typeArgs', {
         typeArgs: typeArgs,
-      }).getMany();
+      })
+      .andWhere('cell.status = status', {
+        status: 'live',
+      })
+      .getMany();
+  }
+
+  public async queryFreeCellsByLockHash(lockHash) {
+    return await this.createQueryBuilder('cell')
+      .where('cell.lockHash = :lockHash', {
+        lockHash: lockHash,
+      })
+      .andWhere("cell.status = 'live'")
+      .andWhere('cell.typeCodeHash is null')
+      .andWhere('cell.outputData =  :outputData', {
+        outputData: '0x',
+      })
+      .getMany();
   }
 }

@@ -13,6 +13,7 @@ import { CKB_TOKEN_DECIMALS } from '../util/constant';
 import { CellRepository } from './cell.repository';
 import { ApiException } from '../exception/api.exception';
 import { ApiCode } from '../util/apiCode.enums';
+import * as utils from '@nervosnetwork/ckb-sdk-utils';
 
 @Injectable()
 export class CellService {
@@ -195,8 +196,11 @@ export class CellService {
     return newUnspentCells;
   }
 
-  public async getCellsByLockHashAndTypeScripts(lockHash, typeScripts) {
-    const typeScriptsCells = [];
+  public async getCellsByLockHashAndTypeScripts(
+    lockHash,
+    typeScripts: CKBComponents.Script[],
+  ) {
+    const result = {};
     for (const typeScript of typeScripts) {
       const cells = await this.cellRepository.queryCellsByLockHashAndTypeScript(
         lockHash,
@@ -204,10 +208,35 @@ export class CellService {
         typeScript.codeHash,
         typeScript.args,
       );
-      if (!_.isEmpty(cells)) {
-        typeScriptsCells.push(cells);
+      if (_.isEmpty(cells)) {
+        return [];
       }
+      const udts = [];
+      for (const typeScriptCell of cells) {
+        const typeScript: CKBComponents.Script = {
+          args: typeScriptCell.typeArgs,
+          codeHash: typeScriptCell.typeCodeHash,
+          hashType: 'data',
+        };
+        const typeScriptHash = utils.scriptToHash(typeScript);
+        const udt = {
+          typeHash: typeScriptHash,
+          capacity: typeScriptCell.capacity,
+          outputdata: typeScriptCell.outputData,
+          type: typeScript,
+        };
+        udts.push(udt);
+      }
+      result['udts'] = udts;
     }
-    return typeScriptsCells;
+    const freeCells = await this.cellRepository.queryFreeCellsByLockHash(
+      lockHash,
+    );
+    function getTotalCapity(total, cell) {
+      return BigInt(total) + BigInt(cell.capacity);
+    }
+    const totalFreeCapity = freeCells.reduce(getTotalCapity, 0);
+    result['capacity'] = totalFreeCapity.toString();
+    return result;
   }
 }
