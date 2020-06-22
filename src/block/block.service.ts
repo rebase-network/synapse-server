@@ -324,6 +324,7 @@ export class BlockService extends NestSchedule {
       hashType: output.lock.hashType,
     };
     const lockHash = ckbUtils.scriptToHash(lockScript);
+
     const newCellObj = {
       blockNumber: parseInt(header.number, 16),
       blockHash: header.hash,
@@ -335,6 +336,9 @@ export class BlockService extends NestSchedule {
       lockArgs: output.lock.args,
       lockCodeHash: output.lock.codeHash,
       lockHashType: output.lock.hashType,
+      typeArgs: output.type?.args,
+      typeCodeHash: output.type?.codeHash,
+      typeHashType: output.type?.hashType,
       capacity: bigintStrToNum(output.capacity),
       address: '', // TODO delete it
       outputData: outputData,
