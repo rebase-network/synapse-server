@@ -10,11 +10,15 @@ import {
 import { CellService } from './cell.service';
 import { LoggingInterceptor } from '../logging.interceptor';
 import * as _ from 'lodash';
+import { IndexerService } from './cell.indexer';
 
 @Controller('cell')
 @UseInterceptors(LoggingInterceptor)
 export class CellController {
-  constructor(private readonly cellService: CellService) {}
+  constructor(
+      private readonly cellService: CellService,
+      private readonly indexerService: IndexerService
+    ) {}
 
   @Post('getTxHistories')
   async getTxHistories(@Body() params: any): Promise<any> {
@@ -89,5 +93,12 @@ export class CellController {
       lockHash,
       typeScripts,
     );
+  }
+
+  @Post('getTxHistoriesByIndexer')
+  async getTxHistoriesByIndexer(@Body() params: any): Promise<any> {
+    console.log(/params/,JSON.stringify(params))
+    const result = this.indexerService.getTxHistories(params);
+    return result;
   }
 }
