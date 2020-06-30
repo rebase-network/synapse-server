@@ -89,6 +89,7 @@ export class CellController {
   @Post('getCellsByLockHashAndTypeScripts')
   async getCellsByLockHashAndTypeScripts(@Body() params: any): Promise<any> {
     const { lockHash, typeScripts } = params;
+    console.log(/typeScripts/,typeScripts);
     return await this.cellService.getCellsByLockHashAndTypeScripts(
       lockHash,
       typeScripts,
