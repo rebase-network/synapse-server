@@ -52,6 +52,10 @@ export class Cell {
   @Column({ type: 'varchar' })
   lockHashType: string;
 
+  @Index("idx-cell-typeHash")
+  @Column({ type: 'varchar', default: null, nullable: true } )
+  typeHash: string;
+
   @Index("idx-cell-typeArgs")
   @Column({ type: 'varchar', default: null, nullable: true } )
   typeArgs: string;
