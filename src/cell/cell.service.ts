@@ -1,6 +1,6 @@
 /// <reference types="@nervosnetwork/ckb-types" />
 import { Injectable, HttpService } from '@nestjs/common';
-import { map } from 'rxjs/operators';
+import { map, isEmpty } from 'rxjs/operators';
 import * as _ from 'lodash';
 import * as Types from '../types';
 import { Cell } from './interfaces/cell.interface';
@@ -14,6 +14,7 @@ import { CellRepository } from './cell.repository';
 import { ApiException } from '../exception/api.exception';
 import { ApiCode } from '../util/apiCode.enums';
 import * as utils from '@nervosnetwork/ckb-sdk-utils';
+import {Not} from "typeorm";
 
 @Injectable()
 export class CellService {
@@ -101,28 +102,74 @@ export class CellService {
       .toPromise();
   }
 
-  public async getUnspentCells(
-    lockHash: string,
-    isEmpty: boolean,
-    capacity?: number,
-  ) {
+  public getReturnCells(unspentCells) {
+    const newUnspentCells = [];
+    for (const cell of unspentCells) {
+      const dataLength = ckbUtils.hexToBytes(cell.outputData).length;
+      const newCell = {
+        blockHash: cell.blockHash,
+        lock: {
+          codeHash: cell.lockCodeHash,
+          hashType: cell.lockHashType,
+          args: cell.lockArgs,
+        },
+        lockHash: cell.lockHash,
+        outPoint: {
+          txHash: cell.txHash,
+          index: cell.index,
+        },
+        outputData: cell.outputData,
+        outputDataLen: '0x' + dataLength.toString(16),
+        capacity: '0x' + bigintStrToNum(cell.capacity.toString()).toString(16),
+        type: {
+          codeHash: cell.typeCodeHash,
+          hashType: cell.typeHashType,
+          args: cell.typeArgs,
+        },
+        typeHash: cell.typeHash,
+        dataHash: cell.outputDataHash,
+        status: cell.status,
+      };
+      newUnspentCells.push(newCell);
+    }
+    return newUnspentCells;
+  }
+
+  public async getUnspentCells(params: Types.UnspentCellsParams) {
     console.time('getUnspentCells');
-    const queryObj = {
+    const { lockHash, typeHash, capacity, hasData, limit } = params;
+    const queryObj: Types.UnspentCellsQuery = {
       lockHash,
-      typeCodeHash: null,
       status: 'live',
     };
-
-    if (isEmpty) {
-      queryObj['outputData'] = '0x';
+    if (!_.isEmpty(typeHash)) {
+      queryObj.typeHash = typeHash;
     }
 
-    if (capacity == 0) {
+    if (hasData === "true") {
+      queryObj.outputData = Not('0x'); // TODO
+    } else if (hasData === "false") {
+      queryObj.outputData = '0x';
+    }
+
+    // 1 - limit
+    if (limit !== undefined) {
+      const cells = await this.cellRepository.queryByQueryObjAndStepPage(
+        queryObj,
+        parseInt(limit,10),
+        0,
+      );
+      const unspentCells = await cells.getMany();
+      return this.getReturnCells(unspentCells) || [];
+    }
+
+    // 2- capacity
+    if (capacity === undefined) {
       return [];
     }
 
     const fakeFee = 1 * CKB_TOKEN_DECIMALS;
-    const ckbcapacity = capacity * CKB_TOKEN_DECIMALS;
+    const ckbcapacity = parseInt(capacity) * CKB_TOKEN_DECIMALS;
     const _totalcapacity = await this.addressService.getAddressInfo(lockHash);
     const totalcapacity = BigInt(_totalcapacity.capacity);
 
@@ -133,13 +180,13 @@ export class CellService {
     }
 
     const sendCapactity = ckbcapacity + 61 * CKB_TOKEN_DECIMALS + fakeFee;
-    let unspentCells = [];
 
     const cell = await this.cellRepository.queryByQueryObjAndCapacity(
       queryObj,
       sendCapactity,
     );
 
+    let unspentCells = [];
     if (cell) {
       unspentCells.push(cell);
     } else {
@@ -147,117 +194,91 @@ export class CellService {
       let page = 0;
       const step = 50;
 
+      let newcells = [];
       do {
         const cells = await this.cellRepository.queryByQueryObjAndStepPage(
           queryObj,
           step,
           page,
         );
-        const newcells = await cells.getMany();
+        newcells = await cells.getMany();
         unspentCells = _.concat(unspentCells, newcells);
 
         sumCapacity = unspentCells.reduce((pre, cur) => {
           return pre + BigInt(cur.capacity);
         }, BigInt(0));
         page += 1;
-      } while (sumCapacity < sendCapactity);
+      } while (sumCapacity < sendCapactity && newcells.length > 0 );
     }
 
     if (unspentCells.length === 0) {
       return [];
     }
-
-    const newUnspentCells = [];
-
-    for (const cell of unspentCells) {
-      const dataLength = ckbUtils.hexToBytes(cell.outputData).length;
-      const newCell = {
-        blockHash: cell.blockHash,
-        lock: {
-          codeHash: cell.lockCodeHash,
-          hashType: cell.lockHashType,
-          args: cell.lockArgs,
-        },
-        outPoint: {
-          txHash: cell.txHash,
-          index: cell.index,
-        },
-        outputData: cell.outputData,
-        outputDataLen: '0x' + dataLength.toString(16),
-        capacity: '0x' + bigintStrToNum(cell.capacity.toString()).toString(16),
-        type: null,
-        dataHash: cell.outputDataHash,
-        status: cell.status,
-      };
-      newUnspentCells.push(newCell);
-    }
     console.timeEnd('getUnspentCells');
 
-    return newUnspentCells;
+    return this.getReturnCells(unspentCells);
   }
 
   public async getCellsByLockHashAndTypeScripts(
     lockHash,
     typeScripts: CKBComponents.Script[],
   ) {
-
-    console.log(/typeScripts/,typeScripts);
     const result = {};
-    if(_.isEmpty(typeScripts) || typeScripts.length === 0){
-        const findObj = { lockHash };
-        const cells = await this.cellRepository.find(findObj);
-          if (_.isEmpty(cells)) {
-            return [];
-          }
-          const udts = [];
-          for (const typeScriptCell of cells) {
-            if(_.isEmpty(typeScriptCell.typeCodeHash)){
-                continue;
-            }
-            const typeScript: CKBComponents.Script = {
-              args: typeScriptCell.typeArgs,
-              codeHash: typeScriptCell.typeCodeHash,
-              hashType: typeScriptCell.typeHashType as CKBComponents.ScriptHashType,
-            };
-            const typeScriptHash = utils.scriptToHash(typeScript);
-            const udt = {
-              typeHash: typeScriptHash,
-              capacity: typeScriptCell.capacity,
-              outputdata: typeScriptCell.outputData,
-              type: typeScript,
-            };
-            udts.push(udt);
-          }
-          result['udts'] = udts;
+    if (_.isEmpty(typeScripts) || typeScripts.length === 0) {
+      const findObj = { lockHash };
+      const cells = await this.cellRepository.find(findObj);
+      if (_.isEmpty(cells)) {
+        return [];
+      }
+      const udts = [];
+      for (const typeScriptCell of cells) {
+        if (_.isEmpty(typeScriptCell.typeCodeHash)) {
+          continue;
+        }
+        const typeScript: CKBComponents.Script = {
+          args: typeScriptCell.typeArgs,
+          codeHash: typeScriptCell.typeCodeHash,
+          hashType: typeScriptCell.typeHashType as CKBComponents.ScriptHashType,
+        };
+        const typeScriptHash = utils.scriptToHash(typeScript);
+        const udt = {
+          typeHash: typeScriptHash,
+          capacity: typeScriptCell.capacity,
+          outputdata: typeScriptCell.outputData,
+          type: typeScript,
+        };
+        udts.push(udt);
+      }
+      result['udts'] = udts;
     } else {
-        for (const typeScript of typeScripts) {
-            const cells = await this.cellRepository.queryCellsByLockHashAndTypeScript(
-              lockHash,
-              typeScript.hashType,
-              typeScript.codeHash,
-              typeScript.args,
-            );
-            if (_.isEmpty(cells)) {
-              return [];
-            }
-            const udts = [];
-            for (const typeScriptCell of cells) {
-              const typeScript: CKBComponents.Script = {
-                args: typeScriptCell.typeArgs,
-                codeHash: typeScriptCell.typeCodeHash,
-                hashType: typeScriptCell.typeHashType as CKBComponents.ScriptHashType,
-              };
-              const typeScriptHash = utils.scriptToHash(typeScript);
-              const udt = {
-                typeHash: typeScriptHash,
-                capacity: typeScriptCell.capacity,
-                outputdata: typeScriptCell.outputData,
-                type: typeScript,
-              };
-              udts.push(udt);
-            }
-            result['udts'] = udts;
-          }
+      for (const typeScript of typeScripts) {
+        const cells = await this.cellRepository.queryCellsByLockHashAndTypeScript(
+          lockHash,
+          typeScript.hashType,
+          typeScript.codeHash,
+          typeScript.args,
+        );
+        if (_.isEmpty(cells)) {
+          return [];
+        }
+        const udts = [];
+        for (const typeScriptCell of cells) {
+          const typeScript: CKBComponents.Script = {
+            args: typeScriptCell.typeArgs,
+            codeHash: typeScriptCell.typeCodeHash,
+            hashType: typeScriptCell.typeHashType as CKBComponents.ScriptHashType,
+          };
+          const typeScriptHash = utils.scriptToHash(typeScript);
+          const udt = {
+            typeHash: typeScriptHash,
+            capacity: typeScriptCell.capacity,
+            outputdata: typeScriptCell.outputData,
+            type: typeScript,
+          };
+          udts.push(udt);
+        }
+        result['udts'] = udts;
+      }
     }
     const freeCells = await this.cellRepository.queryFreeCellsByLockHash(
       lockHash,

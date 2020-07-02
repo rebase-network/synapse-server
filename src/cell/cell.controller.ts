@@ -63,33 +63,21 @@ export class CellController {
     return txs;
   }
 
-  @Post('getLiveCells')
-  async getLiveCells(@Body() params: any): Promise<any> {
-    const liveCells = await this.cellService.getLiveCells(params);
-    return liveCells;
-  }
+//   @Post('getLiveCells')
+//   async getLiveCells(@Body() params: any): Promise<any> {
+//     const liveCells = await this.cellService.getLiveCells(params);
+//     return liveCells;
+//   }
 
-  @Get('getUnspentCells/:lockHash')
-  async getUnspentCells(@Param('lockHash') lockHash: string, @Query() params) {
-    // getUnspentCells/123456?isEmpty=true&capacity=100
-
-    const _isEmpty = params.isEmpty?.toLowerCase();
-    const isEmpty = _isEmpty == 'true' ? true : false;
-
-    let capacity = 0;
-    if (_.isEmpty(params.capacity)) {
-      capacity = 62;
-    } else {
-      capacity = parseInt(params.capacity);
-    }
-
-    return await this.cellService.getUnspentCells(lockHash, isEmpty, capacity);
+  @Get('getUnspentCells')
+  async getUnspentCells(@Query() params) {
+    const result = await this.cellService.getUnspentCells(params)
+    return result;
   }
 
   @Post('getCellsByLockHashAndTypeScripts')
   async getCellsByLockHashAndTypeScripts(@Body() params: any): Promise<any> {
     const { lockHash, typeScripts } = params;
-    console.log(/typeScripts/,typeScripts);
     return await this.cellService.getCellsByLockHashAndTypeScripts(
       lockHash,
       typeScripts,
@@ -98,7 +86,6 @@ export class CellController {
 
   @Post('getTxHistoriesByIndexer')
   async getTxHistoriesByIndexer(@Body() params: any): Promise<any> {
-    console.log(/params/,JSON.stringify(params))
     const result = this.indexerService.getTxHistories(params);
     return result;
   }

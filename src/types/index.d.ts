@@ -48,3 +48,20 @@ declare namespace Indexer {
     address: string; // TODO: delete me
   }
 }
+
+export interface UnspentCellsParams {
+    lockHash: string;
+    typeHash: string;
+    capacity: string;
+    hasData: string;
+    limit: string;
+}
+
+  export interface UnspentCellsQuery {
+    lockHash: string;
+    typeHash?: string;
+    capacity?: number;
+    limit?: number;
+    status: string;
+    outputData?: any;
+  }  
