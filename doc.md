@@ -69,3 +69,62 @@ http://101.200.147.143:8117/indexer
   "id": 0
 }
 ```
+## getUnspentCells
+```
+### request params
+lockHash
+status
+limit 
+hasData
+capacity
+typeHash
+- 其中lockHash和status必须传值 
+  status为"live"
+- limit和capacity 必须有一个值存在
+  limit表示查询多少记录
+   capacity表示查询的cells的余额值
+- typeHash可选项（查询UDT时用）
+- hasData（"true","false",不传
+  - "true"表示查询的是包含数据的cells | outputdata != '0x'
+  - "false"表示查询的是不包含数据的cells | outputdata == '0x'
+  - 不传值表示查询所有的cells
+
+### request url
+
+http://localhost:2333/cell/getUnspentCells?lockHash=0x98ddfc5f3e0836ee1bda3ebef2f0156abb74b632dc9c6a412dce53a13e4c6fdb&status=live&limit=10&hasData=true
+
+
+### response
+
+{
+    "errCode": 0,
+    "errMsg": "",
+    "data": [
+        {
+            "blockHash": "0x4f295363dd3b2de20038b7e7674a16bdbb0c4f29a765b2699f4c618a59e19f65",
+            "lock": {
+                "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                "hashType": "type",
+                "args": "0x72bbbc9d918e4cdc2b4daeb8743f092b5f8abfed"
+            },
+            "lockHash": "0x98ddfc5f3e0836ee1bda3ebef2f0156abb74b632dc9c6a412dce53a13e4c6fdb",
+            "outPoint": {
+                "txHash": "0x6f010b3ed28b8c3d38a2b3bd186d5027ba9df11f143860a482b3df3e3df42b5b",
+                "index": "0x1"
+            },
+            "outputData": "0x",
+            "outputDataLen": "0x0",
+            "capacity": "0x72f8c60618",
+            "type": {
+                "codeHash": null,
+                "hashType": null,
+                "args": null
+            },
+            "typeHash": null,
+            "dataHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "status": "live"
+        }
+    ]
+}
+
+
