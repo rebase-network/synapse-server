@@ -169,7 +169,7 @@ export class CellService {
     }
 
     const fakeFee = 1 * CKB_TOKEN_DECIMALS;
-    const ckbcapacity = parseInt(capacity) * CKB_TOKEN_DECIMALS;
+    const ckbcapacity = parseInt(capacity) ;
     const _totalcapacity = await this.addressService.getAddressInfo(lockHash);
     const totalcapacity = BigInt(_totalcapacity.capacity);
 

@@ -73,18 +73,19 @@ http://101.200.147.143:8117/indexer
 ```
 ### request params
 lockHash
-status
 limit 
 hasData
 capacity
 typeHash
-- 其中lockHash和status必须传值 
-  status为"live"
+- 其中lockHash 必须传值
+
 - limit和capacity 必须有一个值存在
   limit表示查询多少记录
    capacity表示查询的cells的余额值
-- typeHash可选项（查询UDT时用）
-- hasData（"true","false",不传
+- typeHash可选项
+   查询UDT时用
+- hasData 可选项
+   "true","false",不传
   - "true"表示查询的是包含数据的cells | outputdata != '0x'
   - "false"表示查询的是不包含数据的cells | outputdata == '0x'
   - 不传值表示查询所有的cells

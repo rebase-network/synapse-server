@@ -20,7 +20,6 @@ export interface ReadableTx {
   amount: number;
 }
 
-
 interface LockhashCapacity {
   capacity: string;
   lockHash: string;
@@ -28,7 +27,7 @@ interface LockhashCapacity {
 }
 
 interface LockhashCapacityObj {
-  address: LockhashCapacity
+  address: LockhashCapacity;
 }
 
 export interface TxFromIndexer {
@@ -50,18 +49,18 @@ declare namespace Indexer {
 }
 
 export interface UnspentCellsParams {
-    lockHash: string;
-    typeHash: string;
-    capacity: string;
-    hasData: string;
-    limit: string;
+  lockHash: string;
+  typeHash: string;
+  capacity: string;
+  hasData: string;
+  limit: string;
 }
 
-  export interface UnspentCellsQuery {
-    lockHash: string;
-    typeHash?: string;
-    capacity?: number;
-    limit?: number;
-    status: string;
-    outputData?: any;
-  }  
+export interface UnspentCellsQuery {
+  lockHash: string;
+  typeHash?: string;
+  capacity?: number;
+  limit?: number;
+  status: string;
+  outputData?: any;
+}
