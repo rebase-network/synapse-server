@@ -119,7 +119,7 @@ export class IndexerService {
     return result;
   }
 
-  async getTxDetails (blockTxs, args) {
+  async getTxDetails (blockTxs, script) {
     for (const tx of blockTxs) {
       // Object.values(tx.inputs).map(item => item.capacity);
       // Object.values(tx.outputs).map(item => item.capacity);
@@ -128,31 +128,61 @@ export class IndexerService {
       const fee = inSum - outSum;
       tx.fee = fee < 0 ? 0 : fee; // handle cellBase condition
   
-      let flag = false;
+      const flag = false;
       tx.amount = 0;
   
-      for (const input of tx.inputs) {
-        if (input.lockArgs === args) {
-          flag = true;
-          tx.income = false; // 入账\收入
-          for (const output of tx.outputs) {
-            if (output.lockArgs !== args) {
-              tx.amount = output.capacity;
-              break;
-            }
-          }
-          break;
+      // inputs outputs filter
+      const inputCells = _.filter(tx.inputs, function(input) { 
+          return input.lockArgs === script.args && input.lockCodeHash === script.codeHash; 
+      })
+      console.log(/inputCells/,inputCells);
+      const outputCells = _.filter(tx.outputs, function(output) { 
+        return output.lockArgs === script.args && output.lockCodeHash === script.codeHash; 
+      })
+      console.log(/outputCells/,outputCells);
+      if(!_.isEmpty(inputCells) && _.isEmpty(outputCells)){
+        tx.income = false; // 出账
+        tx.amount = inputCells.reduce((prev, next) => prev + next.capacity, 0);
+      }
+      if(_.isEmpty(inputCells) && !_.isEmpty(outputCells)){
+        tx.income = true; // 入账
+        tx.amount = outputCells.reduce((prev, next) => prev + next.capacity, 0);
+      }
+      let inputAmount = 0;
+      let outputAmount = 0;
+      if(!_.isEmpty(inputCells) && !_.isEmpty(outputCells)){
+        inputAmount = inputCells.reduce((prev, next) => prev + next.capacity, 0);
+        outputAmount = outputCells.reduce((prev, next) => prev + next.capacity, 0);
+        if(inputAmount > outputAmount){
+            tx.income = false; // 出账
+            tx.amount = inputAmount - outputAmount;
+        } else {
+            tx.income = true; // 入账
+            tx.amount = outputAmount - inputAmount;
         }
       }
-      if (!flag) {
-        tx.income = true; // 入账\收入
-        for (const output of tx.outputs) {
-          if (output.lockArgs === args) {
-            tx.amount = output.capacity;
-            break;
-          }
-        }
-      }
+    //   for (const input of tx.inputs) {
+    //     if (input.lockArgs === script.args && input.lockCodeHash === script.codeHash) {
+    //       flag = true;
+    //       tx.income = false; // 出账
+    //       for (const output of tx.outputs) {
+    //         if (!(output.lockArgs === script.args || output.lockCodeHash === script.codeHash)) {
+    //           tx.amount = output.capacity;
+    //           break;
+    //         }
+    //       }
+    //       break;
+    //     }
+    //   }
+    //   if (!flag) {
+    //     tx.income = true; // 入账\收入
+    //     for (const output of tx.outputs) {
+    //       if ((output.lockArgs === script.args || output.lockCodeHash === script.codeHash)) {
+    //         tx.amount = output.capacity;
+    //         break;
+    //       }
+    //     }
+    //   }
     }
     return blockTxs;
   };
@@ -163,12 +193,11 @@ export class IndexerService {
       codeHash: typeScript.script.code_hash,
       hashType: typeScript.script.hash_type,
     };
-    console.log(/script/,JSON.stringify(script))
     const lockHash = ckbUtils.scriptToHash(script);
-    const { args } = typeScript.script;
+    // const { args } = typeScript.script;
     const transactionList = await this.getTransactionsByLockHash(lockHash);
     const blockTxs = await this.parseBlockTxs(transactionList);
-    const result = await this.getTxDetails(blockTxs, args);
+    const result = await this.getTxDetails(blockTxs,script);
     return result;
   };
 }

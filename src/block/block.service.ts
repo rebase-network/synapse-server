@@ -36,6 +36,7 @@ export class BlockService extends NestSchedule {
 
   private readonly ckb = this.ckbService.getCKB();
   private isSyncing = false;
+  private timeCount = 0;
 
   getReadableCell(output) {
     const result = {};
@@ -413,4 +414,35 @@ export class BlockService extends NestSchedule {
     }
     return feeRate;
   }
+
+//   /**
+//    * test ckb indexer
+//    */
+//   @Interval(1000)
+//   async indexer() { 
+//     this.timeCount = this.timeCount + 1;
+//     console.log(/timeCount/, this.timeCount);
+//     const lockHash ='0x2de45e0c29b3beeee3f7180d5d2e1c92f24a51f8191cd884e07080bc053d8356';
+//     //   await this.ckb.rpc.deindexLockHash(lockHash);
+//     const indexerStatus = await this.getIndexStatusByLockHash(lockHash);
+//     if (!indexerStatus) {
+//       await this.ckb.rpc.indexLockHash(lockHash, '0x0');
+//     } else {
+//       // console.log(/delete/,'delete');
+//       // await this.ckb.rpc.deindexLockHash(lockHash);
+//       return;
+//     }
+//   }
+
+//  async getIndexStatusByLockHash(lockHash: string) {
+//     const indexers = await this.ckb.rpc.getLockHashIndexStates();
+//     const result = _.find(indexers, (indexer) => {
+//       return indexer.lockHash === lockHash;
+//     });
+//     if (!_.isEmpty(result)) {
+//       console.log(/indexer result/,result)
+//       return true;
+//     }
+//     return false;
+//   };
 }
