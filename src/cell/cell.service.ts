@@ -14,7 +14,7 @@ import { CellRepository } from './cell.repository';
 import { ApiException } from '../exception/api.exception';
 import { ApiCode } from '../util/apiCode.enums';
 import * as utils from '@nervosnetwork/ckb-sdk-utils';
-import {Not} from "typeorm";
+import { Not } from 'typeorm';
 
 @Injectable()
 export class CellService {
@@ -146,9 +146,9 @@ export class CellService {
       queryObj.typeHash = typeHash;
     }
 
-    if (hasData === "true") {
+    if (hasData === 'true') {
       queryObj.outputData = Not('0x'); // TODO
-    } else if (hasData === "false") {
+    } else if (hasData === 'false') {
       queryObj.outputData = '0x';
     }
 
@@ -156,7 +156,7 @@ export class CellService {
     if (limit !== undefined) {
       const cells = await this.cellRepository.queryByQueryObjAndStepPage(
         queryObj,
-        parseInt(limit,10),
+        parseInt(limit, 10),
         0,
       );
       const unspentCells = await cells.getMany();
@@ -169,7 +169,7 @@ export class CellService {
     }
 
     const fakeFee = 1 * CKB_TOKEN_DECIMALS;
-    const ckbcapacity = parseInt(capacity) ;
+    const ckbcapacity = parseInt(capacity);
     const _totalcapacity = await this.addressService.getAddressInfo(lockHash);
     const totalcapacity = BigInt(_totalcapacity.capacity);
 
@@ -208,7 +208,7 @@ export class CellService {
           return pre + BigInt(cur.capacity);
         }, BigInt(0));
         page += 1;
-      } while (sumCapacity < sendCapactity && newcells.length > 0 );
+      } while (sumCapacity < sendCapactity && newcells.length > 0);
     }
 
     if (unspentCells.length === 0) {
@@ -224,30 +224,39 @@ export class CellService {
     typeScripts: CKBComponents.Script[],
   ) {
     const result = {};
-    if (_.isEmpty(typeScripts) || typeScripts.length === 0) {
-      const findObj = { lockHash };
+    if (typeScripts === undefined || _.isEmpty(typeScripts) || typeScripts.length === 0 ) {
+      const findObj = { lockHash, status: 'live' };
       const cells = await this.cellRepository.find(findObj);
       if (_.isEmpty(cells)) {
         return [];
       }
       const udts = [];
-      for (const typeScriptCell of cells) {
-        if (_.isEmpty(typeScriptCell.typeCodeHash)) {
-          continue;
+      for (const cell of cells) {
+        if (cell.outputData !== '0x') {
+          if (cell.typeCodeHash === undefined || cell.typeCodeHash === null) {
+            const udt = {
+              typeHash: null,
+              capacity: cell.capacity,
+              outputdata: cell.outputData,
+              type: null,
+            };
+            udts.push(udt);
+          } else {
+            const typeScript: CKBComponents.Script = {
+              args: cell.typeArgs,
+              codeHash: cell.typeCodeHash,
+              hashType: cell.typeHashType as CKBComponents.ScriptHashType,
+            };
+            const typeScriptHash = utils.scriptToHash(typeScript);
+            const udt = {
+              typeHash: typeScriptHash,
+              capacity: cell.capacity,
+              outputdata: cell.outputData,
+              type: typeScript,
+            };
+            udts.push(udt);
+          }
         }
-        const typeScript: CKBComponents.Script = {
-          args: typeScriptCell.typeArgs,
-          codeHash: typeScriptCell.typeCodeHash,
-          hashType: typeScriptCell.typeHashType as CKBComponents.ScriptHashType,
-        };
-        const typeScriptHash = utils.scriptToHash(typeScript);
-        const udt = {
-          typeHash: typeScriptHash,
-          capacity: typeScriptCell.capacity,
-          outputdata: typeScriptCell.outputData,
-          type: typeScript,
-        };
-        udts.push(udt);
       }
       result['udts'] = udts;
     } else {
@@ -262,17 +271,93 @@ export class CellService {
           return [];
         }
         const udts = [];
-        for (const typeScriptCell of cells) {
+        for (const cell of cells) {
           const typeScript: CKBComponents.Script = {
-            args: typeScriptCell.typeArgs,
-            codeHash: typeScriptCell.typeCodeHash,
-            hashType: typeScriptCell.typeHashType as CKBComponents.ScriptHashType,
+            args: cell.typeArgs,
+            codeHash: cell.typeCodeHash,
+            hashType: cell.typeHashType as CKBComponents.ScriptHashType,
           };
           const typeScriptHash = utils.scriptToHash(typeScript);
           const udt = {
             typeHash: typeScriptHash,
-            capacity: typeScriptCell.capacity,
-            outputdata: typeScriptCell.outputData,
+            capacity: cell.capacity,
+            outputdata: cell.outputData,
+            type: typeScript,
+          };
+          udts.push(udt);
+        }
+        result['udts'] = udts;
+      }
+    }
+    const freeCells = await this.cellRepository.queryFreeCellsByLockHash(
+      lockHash,
+    );
+    function getTotalCapity(total, cell) {
+      return BigInt(total) + BigInt(cell.capacity);
+    }
+    const totalFreeCapity = freeCells.reduce(getTotalCapity, 0);
+    result['capacity'] = totalFreeCapity.toString();
+    return result;
+  }
+
+  public async getCellsByLockHashAndTypeHashes(lockHash, typeHashes: []) {
+    const result = {};
+    if (typeHashes === undefined ||_.isEmpty(typeHashes) ||typeHashes.length === 0) {
+      const findObj = { lockHash, status: 'live' };
+      const cells = await this.cellRepository.find(findObj);
+      if (_.isEmpty(cells)) {
+        return [];
+      }
+      const udts = [];
+      for (const cell of cells) {
+        if (cell.outputData !== '0x') {
+          if (cell.typeCodeHash === undefined || cell.typeCodeHash === null) {
+            const udt = {
+              typeHash: null,
+              capacity: cell.capacity,
+              outputdata: cell.outputData,
+              type: null,
+            };
+            udts.push(udt);
+          } else {
+            const typeScript: CKBComponents.Script = {
+              args: cell.typeArgs,
+              codeHash: cell.typeCodeHash,
+              hashType: cell.typeHashType as CKBComponents.ScriptHashType,
+            };
+            const typeScriptHash = utils.scriptToHash(typeScript);
+            const udt = {
+              typeHash: typeScriptHash,
+              capacity: cell.capacity,
+              outputdata: cell.outputData,
+              type: typeScript,
+            };
+            udts.push(udt);
+          }
+        }
+      }
+      result['udts'] = udts;
+    } else {
+      for (const typeHash of typeHashes) {
+        const cells = await this.cellRepository.queryCellsByLockHashAndTypeHash(
+          lockHash,
+          typeHash,
+        );
+        if (_.isEmpty(cells)) {
+          return [];
+        }
+        const udts = [];
+        for (const cell of cells) {
+          const typeScript: CKBComponents.Script = {
+            args: cell.typeArgs,
+            codeHash: cell.typeCodeHash,
+            hashType: cell.typeHashType as CKBComponents.ScriptHashType,
+          };
+          const typeScriptHash = utils.scriptToHash(typeScript);
+          const udt = {
+            typeHash: typeScriptHash,
+            capacity: cell.capacity,
+            outputdata: cell.outputData,
             type: typeScript,
           };
           udts.push(udt);

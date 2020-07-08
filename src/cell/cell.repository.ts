@@ -39,9 +39,22 @@ export class CellRepository extends Repository<Cell> {
       .andWhere('cell.typeArgs =  :typeArgs', {
         typeArgs: typeArgs,
       })
-      .andWhere('cell.status = status', {
-        status: 'live',
+      .andWhere("cell.status = 'live'")
+      .getMany();
+  }
+
+  public async queryCellsByLockHashAndTypeHash(
+    lockHash,
+    typeHash,
+  ) {
+    return await this.createQueryBuilder('cell')
+      .where('cell.lockHash = :lockHash', {
+        lockHash: lockHash,
       })
+      .andWhere('cell.typeHash = :typeHash', {
+        typeHash: typeHash,
+      })
+      .andWhere("cell.status = 'live'")
       .getMany();
   }
 

@@ -84,6 +84,16 @@ export class CellController {
     );
   }
 
+  @Post('getCellsByLockHashAndTypeHashes')
+  async getCellsByLockHashAndTypeHashes(@Body() params: any): Promise<any> {
+    const { lockHash, typeHashes } = params;
+    return await this.cellService.getCellsByLockHashAndTypeHashes(
+      lockHash,
+      typeHashes,
+    );
+  }
+
+
   @Post('getTxHistoriesByIndexer')
   async getTxHistoriesByIndexer(@Body() params: any): Promise<any> {
     const result = this.indexerService.getTxHistories(params);
