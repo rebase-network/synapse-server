@@ -224,7 +224,11 @@ export class CellService {
     typeScripts: CKBComponents.Script[],
   ) {
     const result = {};
-    if (typeScripts === undefined || _.isEmpty(typeScripts) || typeScripts.length === 0 ) {
+    if (
+      typeScripts === undefined ||
+      _.isEmpty(typeScripts) ||
+      typeScripts.length === 0
+    ) {
       const findObj = { lockHash, status: 'live' };
       const cells = await this.cellRepository.find(findObj);
       if (_.isEmpty(cells)) {
@@ -302,7 +306,11 @@ export class CellService {
 
   public async getCellsByLockHashAndTypeHashes(lockHash, typeHashes: []) {
     const result = {};
-    if (typeHashes === undefined ||_.isEmpty(typeHashes) ||typeHashes.length === 0) {
+    if (
+      typeHashes === undefined ||
+      _.isEmpty(typeHashes) ||
+      typeHashes.length === 0
+    ) {
       const findObj = { lockHash, status: 'live' };
       const cells = await this.cellRepository.find(findObj);
       if (_.isEmpty(cells)) {
@@ -374,5 +382,17 @@ export class CellService {
     const totalFreeCapity = freeCells.reduce(getTotalCapity, 0);
     result['capacity'] = totalFreeCapity.toString();
     return result;
+  }
+
+  public async getUnspentCapacity(lockHash) {
+    const findObj = { lockHash, status: 'live', outputData: '0x' };
+    const cells = await this.cellRepository.find(findObj);
+    console.log(/cells/, cells);
+    const capacity = cells.reduce(
+      (prev, next) => BigInt(prev) + BigInt(next.capacity),
+      BigInt(0),
+    );
+    console.log(/capacity/, capacity);
+    return capacity.toString();
   }
 }

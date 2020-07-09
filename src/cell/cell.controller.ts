@@ -99,4 +99,12 @@ export class CellController {
     const result = this.indexerService.getTxHistories(params);
     return result;
   }
+
+
+  @Get('getUnspentCapacity')
+  async getUnspentCapacity(@Query() params) {
+    const { lockHash }  = params;
+    const result = await this.cellService.getUnspentCapacity(lockHash)
+    return result;
+  }
 }
