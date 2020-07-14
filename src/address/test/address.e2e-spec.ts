@@ -3,9 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AddressModule } from '../address.module';
 import { AddressService } from '../address.service';
-import { CkbService } from '../../ckb/ckb.service';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
-import { Address } from '../../model/address.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { AddressRepository } from '../address.repository';
 
 /**
@@ -56,8 +54,6 @@ describe('Address Controller (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-
-    // addressService = await moduleFixture.get<AddressService>(AddressService);
     await app.init();
   });
 
