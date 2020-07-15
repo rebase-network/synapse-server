@@ -6,11 +6,10 @@ import { AddressModule } from '../address/address.module';
 import { CellController } from './cell.controller';
 import { Cell } from '../model/cell.entity';
 import { CellRepository } from './cell.repository';
-import { IndexerService } from './cell.indexer';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Cell,CellRepository]), HttpModule, BlockModule, AddressModule],
-  providers: [CellService,IndexerService],
+  providers: [CellService],
   controllers: [CellController],
   exports: []
 })
