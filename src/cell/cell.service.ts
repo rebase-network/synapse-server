@@ -15,7 +15,7 @@ import { ApiCode } from '../util/apiCode.enums';
 import * as utils from '@nervosnetwork/ckb-sdk-utils';
 import { Not } from 'typeorm';
 import { CkbService } from '../ckb/ckb.service';
-import { ReadableCell, NewTx, TxHistory } from './cell.interface';
+import { ReadableCell, NewTx, TxHistory, BlockNumberAndTxHash } from './cell.interface';
 import { Cell } from 'src/model/cell.entity';
 
 @Injectable()
@@ -442,7 +442,7 @@ export class CellService {
     return newTxs;
   }
 
-  async getTxDetails (blockTxs, lockHash) {
+  async getTxDetails(blockTxs, lockHash) {
     for (const tx of blockTxs) {
       // Object.values(tx.inputs).map(item => item.capacity);
       // Object.values(tx.outputs).map(item => item.capacity);
@@ -450,43 +450,49 @@ export class CellService {
       const outSum = tx.outputs.reduce((prev, next) => prev + next.capacity, 0);
       const fee = inSum - outSum;
       tx.fee = fee < 0 ? 0 : fee; // handle cellBase condition
-  
+
       const flag = false;
       tx.amount = 0;
-  
+
       // inputs outputs filter
-      const inputCells = _.filter(tx.inputs, function(input) { 
-          return input.lockHash === lockHash; 
-      })
-      console.log(/inputCells/,inputCells);
-      const outputCells = _.filter(tx.outputs, function(output) { 
-        return output.lockHash === lockHash; 
-      })
-      console.log(/outputCells/,outputCells);
-      if(!_.isEmpty(inputCells) && _.isEmpty(outputCells)){
+      const inputCells = _.filter(tx.inputs, function(input) {
+        return input.lockHash === lockHash;
+      });
+      console.log(/inputCells/, inputCells);
+      const outputCells = _.filter(tx.outputs, function(output) {
+        return output.lockHash === lockHash;
+      });
+      console.log(/outputCells/, outputCells);
+      if (!_.isEmpty(inputCells) && _.isEmpty(outputCells)) {
         tx.income = false; // 出账
         tx.amount = inputCells.reduce((prev, next) => prev + next.capacity, 0);
       }
-      if(_.isEmpty(inputCells) && !_.isEmpty(outputCells)){
+      if (_.isEmpty(inputCells) && !_.isEmpty(outputCells)) {
         tx.income = true; // 入账
         tx.amount = outputCells.reduce((prev, next) => prev + next.capacity, 0);
       }
       let inputAmount = 0;
       let outputAmount = 0;
-      if(!_.isEmpty(inputCells) && !_.isEmpty(outputCells)){
-        inputAmount = inputCells.reduce((prev, next) => prev + next.capacity, 0);
-        outputAmount = outputCells.reduce((prev, next) => prev + next.capacity, 0);
-        if(inputAmount > outputAmount){
-            tx.income = false; // 出账
-            tx.amount = inputAmount - outputAmount;
+      if (!_.isEmpty(inputCells) && !_.isEmpty(outputCells)) {
+        inputAmount = inputCells.reduce(
+          (prev, next) => prev + next.capacity,
+          0,
+        );
+        outputAmount = outputCells.reduce(
+          (prev, next) => prev + next.capacity,
+          0,
+        );
+        if (inputAmount > outputAmount) {
+          tx.income = false; // 出账
+          tx.amount = inputAmount - outputAmount;
         } else {
-            tx.income = true; // 入账
-            tx.amount = outputAmount - inputAmount;
+          tx.income = true; // 入账
+          tx.amount = outputAmount - inputAmount;
         }
       }
     }
     return blockTxs;
-  };
+  }
 
   getReadableCell(output) {
     const result: ReadableCell = {
@@ -499,23 +505,28 @@ export class CellService {
     return result;
   }
 
-  public async getTxHistoriesByLockHash(lockHash, step, page) {
+  async getTransactionsByLockHash(lockHash: string, page = 0, step = 20) : Promise<BlockNumberAndTxHash[]>{
     const cells: Cell[] = await this.cellRepository.queryCellsByLockHash(
       lockHash,
-      step,
       page,
+      step,
     );
-    let transactionList = [];
+    let transactionList:BlockNumberAndTxHash[] = [];
     for (const cell of cells) {
-      const transaction = {
+      const transaction: BlockNumberAndTxHash = {
         blockNumber: cell.blockNumber.toString(),
         txHash: cell.txHash,
-      }
+      };
       transactionList.push(transaction);
       transactionList = _.uniqBy(transactionList, 'txHash');
     }
+    return transactionList;
+  }
+
+  public async getTxHistoriesByLockHash(lockHash, page=0,step=20) {
+    const transactionList = await this.getTransactionsByLockHash(lockHash,page,step);
     const blockTxs = await this.parseBlockTxs(transactionList);
-    const result = await this.getTxDetails(blockTxs,lockHash);
+    const result = await this.getTxDetails(blockTxs, lockHash);
     return result;
   }
 }

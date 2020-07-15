@@ -68,13 +68,12 @@ export class CellRepository extends Repository<Cell> {
       .getMany();
   }
 
-  public async queryCellsByLockHash(lockHash,step,page) {
+  public async queryCellsByLockHash(lockHash,page = 0,step = 20) {
     console.log('repository queryCellsByLockHash');
     return await this.createQueryBuilder('cell')
       .where('cell.lockHash = :lockHash', {
         lockHash: lockHash,
       })
-      .andWhere("cell.status = 'live'")
       .orderBy('cell.timestamp', 'DESC')
       .limit(step)
       .offset(step * page)

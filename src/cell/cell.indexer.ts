@@ -187,11 +187,11 @@ export class IndexerService {
     return blockTxs;
   };
 
-  async getTxHistories (typeScript) {
+  async getTxHistories (lockScript) {
     const script: CKBComponents.Script = {
-      args: typeScript.script.args,
-      codeHash: typeScript.script.code_hash,
-      hashType: typeScript.script.hash_type,
+      args: lockScript.script.args,
+      codeHash: lockScript.script.code_hash,
+      hashType: lockScript.script.hash_type,
     };
     const lockHash = ckbUtils.scriptToHash(script);
     // const { args } = typeScript.script;

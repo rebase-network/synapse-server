@@ -93,13 +93,17 @@ export class CellController {
     );
   }
 
-
   @Post('getTxHistoriesByIndexer')
   async getTxHistoriesByIndexer(@Body() params: any): Promise<any> {
     const result = this.indexerService.getTxHistories(params);
     return result;
   }
 
+  @Post('getTxHistoriesByLockHash')
+  async getTxHistoriesByLockHash(@Body() params: any): Promise<any> {
+    const result = this.cellService.getTxHistoriesByLockHash(params);
+    return result;
+  }
 
   @Get('getUnspentCapacity')
   async getUnspentCapacity(@Query() params) {

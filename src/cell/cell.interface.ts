@@ -18,3 +18,8 @@ export interface NewTx {
   inputs: any[];
   outputs: any[];
 }
+
+export interface BlockNumberAndTxHash {
+  blockNumber: string;
+  txHash: string;
+}
