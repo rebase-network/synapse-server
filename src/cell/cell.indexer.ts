@@ -7,7 +7,7 @@ import { CkbService } from '../ckb/ckb.service';
 export interface TxHistory {
     blockNumber: string;
     txHash: string;
-  }
+}
   
   export interface ReadableCell {
     capacity: number;

@@ -43,10 +43,7 @@ export class CellRepository extends Repository<Cell> {
       .getMany();
   }
 
-  public async queryCellsByLockHashAndTypeHash(
-    lockHash,
-    typeHash,
-  ) {
+  public async queryCellsByLockHashAndTypeHash(lockHash, typeHash) {
     return await this.createQueryBuilder('cell')
       .where('cell.lockHash = :lockHash', {
         lockHash: lockHash,
@@ -68,6 +65,19 @@ export class CellRepository extends Repository<Cell> {
       .andWhere('cell.outputData =  :outputData', {
         outputData: '0x',
       })
+      .getMany();
+  }
+
+  public async queryCellsByLockHash(lockHash,step,page) {
+    console.log('repository queryCellsByLockHash');
+    return await this.createQueryBuilder('cell')
+      .where('cell.lockHash = :lockHash', {
+        lockHash: lockHash,
+      })
+      .andWhere("cell.status = 'live'")
+      .orderBy('cell.timestamp', 'DESC')
+      .limit(step)
+      .offset(step * page)
       .getMany();
   }
 }
