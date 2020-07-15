@@ -101,7 +101,9 @@ export class CellController {
 
   @Post('getTxHistoriesByLockHash')
   async getTxHistoriesByLockHash(@Body() params: any): Promise<any> {
-    const result = this.cellService.getTxHistoriesByLockHash(params);
+    console.log(/params/,params);
+    const lockHash = params.lockHash;
+    const result = this.cellService.getTxHistoriesByLockHash(lockHash);
     return result;
   }
 
