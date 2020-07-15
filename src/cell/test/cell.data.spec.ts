@@ -123,7 +123,7 @@ export const blockTx = [
 export const mockGetTxHistoriesResult = [
     {
         "hash":"0xff3f9ded461b569789d8e8cf291c4b9e625472c92a99b229643294ef18b6316a",
-        "blockNum":1468197,
+        "blockNum":166725,
         "timestamp":256,
         "inputs":[
             {

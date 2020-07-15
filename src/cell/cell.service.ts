@@ -407,10 +407,8 @@ export class CellService {
       const newTx: Partial<NewTx> = {};
       newTx.hash = tx.txHash;
       if (tx.blockNumber) {
-        newTx.blockNum = parseInt(tx.blockNumber, 16);
-        console.log('111')
+        newTx.blockNum = Number(tx.blockNumber);
         const header = await this.ckb.rpc.getHeaderByNumber(BigInt(tx.blockNumber));
-        console.log('222')
         if (!header) continue;
         newTx.timestamp = parseInt(header.timestamp, 16);
       }
