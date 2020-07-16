@@ -309,7 +309,7 @@ export class CellService {
     return result;
   }
 
-  public async getCellsByLockHashAndTypeHashes(lockHash, typeHashes: []) {
+  public async getCellsByLockHashAndTypeHashes(lockHash, typeHashes: string[]) {
     const result = {};
     if (
       typeHashes === undefined ||
