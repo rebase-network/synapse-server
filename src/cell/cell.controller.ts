@@ -3,7 +3,6 @@ import { CellService } from './cell.service';
 import { LoggingInterceptor } from '../logging.interceptor';
 import * as _ from 'lodash';
 import { UnSpentCellsDTO } from './dto/cell.unspentcells.dto';
-import { ApiQuery } from '@nestjs/swagger';
 import { UdtsDTO } from './dto/cell.udts.dto';
 
 @Controller('locks')
@@ -43,18 +42,16 @@ export class CellController {
   }
 
   @Get(':lockHash/txs')
-  async getTxHistoriesByLockHash(@Param('lockHash') lockHash: string,): Promise<any> {
+  async getTxHistoriesByLockHash(
+    @Param('lockHash') lockHash: string,
+  ): Promise<any> {
     const result = this.cellService.getTxHistoriesByLockHash(lockHash);
     return result;
   }
 
-  @ApiQuery({
-    name: 'lockHash',
-    description: 'lockHash',
-  })
-  @Get('getUnspentCapacity')
-  async getUnspentCapacity(@Query('lockHash') lockHash: string) {
-    const result = await this.cellService.getUnspentCapacity(lockHash);
+  @Get(':lockHash/capacity')
+  async getCapacity(@Param('lockHash') lockHash: string) {
+    const result = await this.cellService.getCapacity(lockHash);
     return result;
   }
 }

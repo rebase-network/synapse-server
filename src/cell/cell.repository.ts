@@ -68,7 +68,7 @@ export class CellRepository extends Repository<Cell> {
       .getMany();
   }
 
-  public async queryCellsByLockHash(lockHash,page = 0,step = 20) {
+  public async queryCellsByLockHash(lockHash, page = 0, step = 20) {
     console.log('repository queryCellsByLockHash');
     return await this.createQueryBuilder('cell')
       .where('cell.lockHash = :lockHash', {
@@ -78,5 +78,12 @@ export class CellRepository extends Repository<Cell> {
       .limit(step)
       .offset(step * page)
       .getMany();
+  }
+
+  public async queryEmptyCapacity(queryObj) {
+    return this.createQueryBuilder('cell')
+      .select('SUM(cell.capacity)', 'totalCapacity')
+      .where(queryObj)
+      .getRawOne();
   }
 }

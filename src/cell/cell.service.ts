@@ -15,8 +15,14 @@ import { ApiCode } from '../util/apiCode.enums';
 import * as utils from '@nervosnetwork/ckb-sdk-utils';
 import { Not } from 'typeorm';
 import { CkbService } from '../ckb/ckb.service';
-import { ReadableCell, NewTx, TxHistory, BlockNumberAndTxHash } from './cell.interface';
+import {
+  ReadableCell,
+  NewTx,
+  TxHistory,
+  BlockNumberAndTxHash,
+} from './cell.interface';
 import { Cell } from 'src/model/cell.entity';
+import { ReturnCapacity } from './interfaces/cell.interface';
 
 @Injectable()
 export class CellService {
@@ -389,16 +395,16 @@ export class CellService {
     return result;
   }
 
-  public async getUnspentCapacity(lockHash) {
+  public async getCapacity(lockHash): Promise<ReturnCapacity> {
+    const capacity = await this.addressService.getAddressInfo(lockHash);
+
     const findObj = { lockHash, status: 'live', outputData: '0x' };
-    const cells = await this.cellRepository.find(findObj);
-    console.log(/cells/, cells);
-    const capacity = cells.reduce(
-      (prev, next) => BigInt(prev) + BigInt(next.capacity),
-      BigInt(0),
-    );
-    console.log(/capacity/, capacity);
-    return capacity.toString();
+    const totalCapacity = await this.cellRepository.queryEmptyCapacity(findObj);
+    const returnCapacity = {
+      capacity: capacity.capacity,
+      emptyCapacity: totalCapacity.totalCapacity,
+    };
+    return returnCapacity;
   }
 
   async parseBlockTxs(txs: TxHistory[]) {
@@ -408,7 +414,9 @@ export class CellService {
       newTx.hash = tx.txHash;
       if (tx.blockNumber) {
         newTx.blockNum = Number(tx.blockNumber);
-        const header = await this.ckb.rpc.getHeaderByNumber(BigInt(tx.blockNumber));
+        const header = await this.ckb.rpc.getHeaderByNumber(
+          BigInt(tx.blockNumber),
+        );
         if (!header) continue;
         newTx.timestamp = parseInt(header.timestamp, 16);
       }
@@ -505,13 +513,17 @@ export class CellService {
     return result;
   }
 
-  async getTransactionsByLockHash(lockHash: string, page = 0, step = 20) : Promise<BlockNumberAndTxHash[]>{
+  async getTransactionsByLockHash(
+    lockHash: string,
+    page = 0,
+    step = 20,
+  ): Promise<BlockNumberAndTxHash[]> {
     const cells: Cell[] = await this.cellRepository.queryCellsByLockHash(
       lockHash,
       page,
       step,
     );
-    let transactionList:BlockNumberAndTxHash[] = [];
+    let transactionList: BlockNumberAndTxHash[] = [];
     for (const cell of cells) {
       const transaction: BlockNumberAndTxHash = {
         blockNumber: cell.blockNumber.toString(),
@@ -523,8 +535,12 @@ export class CellService {
     return transactionList;
   }
 
-  public async getTxHistoriesByLockHash(lockHash, page=0,step=20) {
-    const transactionList = await this.getTransactionsByLockHash(lockHash,page,step);
+  public async getTxHistoriesByLockHash(lockHash, page = 0, step = 20) {
+    const transactionList = await this.getTransactionsByLockHash(
+      lockHash,
+      page,
+      step,
+    );
     const blockTxs = await this.parseBlockTxs(transactionList);
     const result = await this.getTxDetails(blockTxs, lockHash);
     return result;

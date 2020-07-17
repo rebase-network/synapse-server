@@ -4,3 +4,8 @@ export interface Cell {
   type: string;
   data: string;
 }
+
+export interface ReturnCapacity {
+  capacity: string;
+  emptyCapacity: string;
+}
