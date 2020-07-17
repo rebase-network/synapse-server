@@ -317,11 +317,7 @@ export class CellService {
 
   public async getCellsByLockHashAndTypeHashes(lockHash, typeHashes: string[]) {
     const result = {};
-    if (
-      typeHashes === undefined ||
-      _.isEmpty(typeHashes) ||
-      typeHashes.length === 0
-    ) {
+    if (typeHashes === undefined || typeHashes.length === 0) {
       const findObj = { lockHash, status: 'live' };
       const cells = await this.cellRepository.find(findObj);
       if (_.isEmpty(cells)) {
@@ -357,10 +353,9 @@ export class CellService {
       }
       result['udts'] = udts;
     } else {
-      for (const typeHash of typeHashes) {
-        const cells = await this.cellRepository.queryCellsByLockHashAndTypeHash(
+        const cells = await this.cellRepository.queryCellsByLockHashAndTypeHashes(
           lockHash,
-          typeHash,
+          typeHashes,
         );
         if (_.isEmpty(cells)) {
           return [];
@@ -382,7 +377,6 @@ export class CellService {
           udts.push(udt);
         }
         result['udts'] = udts;
-      }
     }
     const freeCells = await this.cellRepository.queryFreeCellsByLockHash(
       lockHash,
@@ -518,7 +512,7 @@ export class CellService {
     page = 0,
     step = 20,
   ): Promise<BlockNumberAndTxHash[]> {
-    const cells: Cell[] = await this.cellRepository.queryCellsByLockHash(
+    const cells: Cell[] = await this.cellRepository.queryCellsByLockHashPage(
       lockHash,
       page,
       step,

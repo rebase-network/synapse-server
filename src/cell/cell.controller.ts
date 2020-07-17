@@ -31,10 +31,13 @@ export class CellController {
     @Param('lockHash') lockHash: string,
     @Query() udtsDTO: UdtsDTO,
   ): Promise<any> {
+
+    console.log(/udtsDTO/,udtsDTO);
     let typeHashes: string[] = [];
     if (udtsDTO.typeHashes !== undefined) {
       typeHashes = _.concat(typeHashes, udtsDTO.typeHashes);
     }
+    console.log(/typeHashes/,typeHashes);
     return await this.cellService.getCellsByLockHashAndTypeHashes(
       lockHash,
       typeHashes,
