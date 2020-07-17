@@ -1,11 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray } from 'class-validator';
 
-export class UDTsDTO {
-  @ApiProperty({
-    description: 'lockHash',
-  })
-  lockHash: string;
+export class UdtsDTO {
 
   @IsArray()
   @ApiProperty({
