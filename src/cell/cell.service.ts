@@ -55,64 +55,6 @@ export class CellService {
     return result;
   }
 
-  public getTxHistories(params: Types.Indexer.QueryTxParams): Promise<any> {
-    const { script, scriptType, order = 'desc', limit = '0x14' } = params;
-    const payload = {
-      id: 0,
-      jsonrpc: '2.0',
-      method: 'get_transactions',
-      params: [{ script: script, script_type: scriptType }, order, limit],
-    };
-    const observable = this.httpService.post(
-      configService.CKB_INDEXER_ENDPOINT,
-      payload,
-    );
-
-    return observable
-      .pipe(
-        map(resp => {
-          const txs = resp.data.result.objects;
-          console.log('txs num: ', txs.length);
-
-          if (txs.length === 0) return [];
-          const txsWithUniqueHash: Types.TxFromIndexer[] = _.uniqBy(
-            txs,
-            'tx_hash',
-          );
-          return this.blockService.parseBlockTxs(txsWithUniqueHash);
-        }),
-      )
-      .toPromise();
-  }
-
-  public getLiveCells(params: Types.Indexer.QueryTxParams): Promise<any> {
-    const { script, scriptType, order = 'desc', limit = '0x14' } = params;
-
-    const payload = {
-      id: 0,
-      jsonrpc: '2.0',
-      method: 'get_cells',
-      params: [{ script: script, script_type: scriptType }, order, limit],
-    };
-
-    const observable = this.httpService.post(
-      configService.CKB_INDEXER_ENDPOINT,
-      payload,
-    );
-
-    return observable
-      .pipe(
-        map(resp => {
-          const liveCells = resp.data.result.objects;
-          console.log('liveCells num: ', liveCells.length);
-
-          if (liveCells.length === 0) return [];
-          return liveCells;
-        }),
-      )
-      .toPromise();
-  }
-
   public getReturnCells(unspentCells) {
     const newUnspentCells = [];
     for (const cell of unspentCells) {
