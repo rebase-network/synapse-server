@@ -15,13 +15,12 @@ yarn
 ```bash
 # database
 yarn pretypeorm
-yarn start:dev:db
+yarn build
 yarn db:mig:r
 yarn db:seed
 
 # env
 cp .env.example .env
-
 
 ## Running the app
 
