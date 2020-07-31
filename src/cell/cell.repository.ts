@@ -9,18 +9,12 @@ export class CellRepository extends Repository<Cell> {
       .andWhere('cell.capacity >:sendCapactity', {
         sendCapactity: capacity,
       })
-      .andWhere('cell.outputData =  :outputData', {
-        outputData: '0x',
-      })
       .getOne();
   }
 
   public async queryByQueryObjAndStepPage(queryObj, step, page) {
     return await this.createQueryBuilder('cell')
-      .where(queryObj)
-      .andWhere('cell.outputData =  :outputData', {
-        outputData: '0x',
-      })      
+      .where(queryObj) 
       .orderBy('cell.capacity', 'DESC')
       .limit(step)
       .offset(step * page);
