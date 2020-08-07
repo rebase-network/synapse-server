@@ -240,6 +240,8 @@ export class CellService {
             capacity: cell.capacity,
             outputdata: cell.outputData,
             type: typeScript,
+            txHash: cell.txHash,
+            index: cell.index,
           };
           udts.push(udt);
         }
