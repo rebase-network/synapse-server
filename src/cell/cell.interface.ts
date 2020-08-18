@@ -19,6 +19,7 @@ export interface NewTx {
   timestamp: number;
   inputs: any[];
   outputs: any[];
+  typeHash: string;
 }
 
 export interface BlockNumberAndTxHash {

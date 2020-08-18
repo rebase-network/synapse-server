@@ -374,6 +374,9 @@ export class CellService {
           const output = inputTx.outputs[parseInt(befIndex, 16)];
           const outputData = inputTx.outputsData[parseInt(befIndex, 16)];
           const newInput = this.getReadableCell(output, outputData);
+          if(newInput.typeHash !== null){
+            newTx.typeHash = newInput.typeHash;
+          }
           newInputs.push(newInput);
         }
       }
@@ -384,6 +387,9 @@ export class CellService {
         let index = 0;
         const outputData = outputsData[parseInt(index.toString(), 16)];
         const newOutput = this.getReadableCell(output, outputData);
+        if(newOutput.typeHash !== null){
+            newTx.typeHash = newOutput.typeHash;
+          }
         newOutputs.push(newOutput);
         index++;
       }
