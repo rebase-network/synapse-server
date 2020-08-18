@@ -291,7 +291,7 @@ export class CellService {
               outputdata: cell.outputData,
               type: typeScript,
               txHash: cell.txHash,
-              index: cell.index,              
+              index: cell.index,
             };
             udts.push(udt);
           }
@@ -299,30 +299,30 @@ export class CellService {
       }
       result['udts'] = udts;
     } else {
-        const cells = await this.cellRepository.queryCellsByLockHashAndTypeHashes(
-          lockHash,
-          typeHashes,
-        );
-        if (_.isEmpty(cells)) {
-          return [];
-        }
-        const udts = [];
-        for (const cell of cells) {
-          const typeScript: CKBComponents.Script = {
-            args: cell.typeArgs,
-            codeHash: cell.typeCodeHash,
-            hashType: cell.typeHashType as CKBComponents.ScriptHashType,
-          };
-          const typeScriptHash = utils.scriptToHash(typeScript);
-          const udt = {
-            typeHash: typeScriptHash,
-            capacity: cell.capacity,
-            outputdata: cell.outputData,
-            type: typeScript,
-          };
-          udts.push(udt);
-        }
-        result['udts'] = udts;
+      const cells = await this.cellRepository.queryCellsByLockHashAndTypeHashes(
+        lockHash,
+        typeHashes,
+      );
+      if (_.isEmpty(cells)) {
+        return [];
+      }
+      const udts = [];
+      for (const cell of cells) {
+        const typeScript: CKBComponents.Script = {
+          args: cell.typeArgs,
+          codeHash: cell.typeCodeHash,
+          hashType: cell.typeHashType as CKBComponents.ScriptHashType,
+        };
+        const typeScriptHash = utils.scriptToHash(typeScript);
+        const udt = {
+          typeHash: typeScriptHash,
+          capacity: cell.capacity,
+          outputdata: cell.outputData,
+          type: typeScript,
+        };
+        udts.push(udt);
+      }
+      result['udts'] = udts;
     }
     const freeCells = await this.cellRepository.queryFreeCellsByLockHash(
       lockHash,
@@ -362,7 +362,7 @@ export class CellService {
       }
 
       const txObj = await this.ckb.rpc.getTransaction(tx.txHash);
-      const { outputs, inputs } = txObj.transaction;
+      const { outputs, inputs, outputsData } = txObj.transaction;
       const newInputs = [];
       for (const input of inputs) {
         const befTxHash = input.previousOutput.txHash;
@@ -372,7 +372,8 @@ export class CellService {
           const inputTxObj = await this.ckb.rpc.getTransaction(befTxHash);
           const inputTx = inputTxObj.transaction;
           const output = inputTx.outputs[parseInt(befIndex, 16)];
-          const newInput = this.getReadableCell(output);
+          const outputData = inputTx.outputsData[parseInt(befIndex, 16)];
+          const newInput = this.getReadableCell(output, outputData);
           newInputs.push(newInput);
         }
       }
@@ -380,8 +381,11 @@ export class CellService {
       newTx.inputs = newInputs;
       const newOutputs = [];
       for (const output of outputs) {
-        const newOutput = this.getReadableCell(output);
+        let index = 0;
+        const outputData = outputsData[parseInt(index.toString(), 16)];
+        const newOutput = this.getReadableCell(output, outputData);
         newOutputs.push(newOutput);
+        index++;
       }
 
       newTx.outputs = newOutputs;
@@ -411,16 +415,23 @@ export class CellService {
         return output.lockHash === lockHash;
       });
       console.log(/outputCells/, outputCells);
+      // 1-
       if (!_.isEmpty(inputCells) && _.isEmpty(outputCells)) {
         tx.income = false; // 出账
         tx.amount = inputCells.reduce((prev, next) => prev + next.capacity, 0);
+        tx.sudt = inputCells.reduce((prev, next) => prev + next.sudt, 0);
       }
+      // 2-
       if (_.isEmpty(inputCells) && !_.isEmpty(outputCells)) {
         tx.income = true; // 入账
         tx.amount = outputCells.reduce((prev, next) => prev + next.capacity, 0);
+        tx.sudt = outputCells.reduce((prev, next) => prev + next.sudt, 0);
       }
       let inputAmount = 0;
       let outputAmount = 0;
+      let inputSudt = 0;
+      let outputSudt = 0;
+      // 3-
       if (!_.isEmpty(inputCells) && !_.isEmpty(outputCells)) {
         inputAmount = inputCells.reduce(
           (prev, next) => prev + next.capacity,
@@ -437,18 +448,44 @@ export class CellService {
           tx.income = true; // 入账
           tx.amount = outputAmount - inputAmount;
         }
+        inputSudt = inputCells.reduce((prev, next) => prev + next.sudt, 0);
+        outputSudt = outputCells.reduce((prev, next) => prev + next.sudt, 0);
+        if (inputSudt > outputSudt) {
+          tx.sudt = inputSudt - outputSudt;
+        } else {
+          tx.sudt = outputSudt - inputSudt;
+        }
       }
     }
     return blockTxs;
   }
 
-  getReadableCell(output) {
+  parseSUDT = (bigEndianHexStr: string) => {
+    const littleEndianStr = bigEndianHexStr
+      .replace('0x', '')
+      .match(/../g)
+      .reverse()
+      .join('');
+    const first128Bit = littleEndianStr.substr(16);
+    return parseInt(`0x${first128Bit}`, 16);
+  };
+
+  getReadableCell(output, outputData) {
+    let typeHash = null;
+    let sudt = 0;
+    if (output.type !== null) {
+      typeHash = ckbUtils.scriptToHash(output.type);
+      sudt = this.parseSUDT(outputData);
+    }
+
     const result: ReadableCell = {
       capacity: parseInt(output.capacity, 16),
       lockHash: ckbUtils.scriptToHash(output.lock),
       lockCodeHash: output.lock.codeHash,
       lockArgs: output.lock.args,
       lockHashType: output.lock.hashType,
+      typeHash: typeHash,
+      sudt: sudt,
     };
     return result;
   }

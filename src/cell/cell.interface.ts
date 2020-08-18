@@ -9,6 +9,8 @@ export interface ReadableCell {
   lockCodeHash: string;
   lockArgs: string;
   lockHashType: string;
+  typeHash: string;
+  sudt: number;
 }
 
 export interface NewTx {
