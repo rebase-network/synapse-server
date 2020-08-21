@@ -95,9 +95,15 @@ export class CellService {
       lockHash,
       status: 'live',
     };
+    let typeHashisNullFlg = false;
     if (!_.isEmpty(typeHash)) {
-      queryObj.typeHash = typeHash;
-    }
+      if(typeHash === 'isNull'){
+        typeHashisNullFlg = true;
+      } else {
+        queryObj.typeHash = typeHash;
+      }
+    } 
+
 
     if (hasData === 'true') {
       queryObj.outputData = Not('0x'); // TODO
@@ -111,6 +117,7 @@ export class CellService {
         queryObj,
         parseInt(limit, 10),
         0,
+        typeHashisNullFlg,
       );
       const unspentCells = await cells.getMany();
       return this.getReturnCells(unspentCells) || [];
@@ -153,6 +160,7 @@ export class CellService {
           queryObj,
           step,
           page,
+          typeHashisNullFlg,
         );
         newcells = await cells.getMany();
         unspentCells = _.concat(unspentCells, newcells);
