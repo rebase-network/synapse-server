@@ -12,21 +12,11 @@ export class CellRepository extends Repository<Cell> {
       .getOne();
   }
 
-  public async queryByQueryObjAndStepPage(queryObj, step, page, typeHash) {
-    if (typeHash === null) {
-      return await this.createQueryBuilder('cell')
-        .where(queryObj)
-        .andWhere('cell.typeHash is null')
-        .orderBy('cell.capacity', 'DESC')
-        .limit(step)
-        .offset(step * page);
-    } else {
+  public async queryByQueryObjAndStepPage(queryObj, step, page) {
       return await this.createQueryBuilder('cell')
         .where(queryObj)
         .orderBy('cell.capacity', 'DESC')
         .limit(step)
-        .offset(step * page);
-    }
   }
 
   public async queryCellsByLockHashAndTypeScript(

@@ -95,7 +95,7 @@ export class CellService {
       lockHash,
       status: 'live',
     };
-    if (typeHash !== null) {
+    if (!_.isEmpty(typeHash)) {
       queryObj.typeHash = typeHash;
     }
 
@@ -111,7 +111,6 @@ export class CellService {
         queryObj,
         parseInt(limit, 10),
         0,
-        typeHash
       );
       const unspentCells = await cells.getMany();
       return this.getReturnCells(unspentCells) || [];
@@ -154,7 +153,6 @@ export class CellService {
           queryObj,
           step,
           page,
-          typeHash
         );
         newcells = await cells.getMany();
         unspentCells = _.concat(unspentCells, newcells);
