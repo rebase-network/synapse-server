@@ -154,6 +154,7 @@ export class CellService {
           queryObj,
           step,
           page,
+          typeHash
         );
         newcells = await cells.getMany();
         unspentCells = _.concat(unspentCells, newcells);
