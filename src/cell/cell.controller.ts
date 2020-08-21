@@ -22,6 +22,7 @@ export class CellController {
       hasData: unSpentCellsDTO.hasData,
       limit: unSpentCellsDTO.limit,
     };
+    console.log(/unSpentCellsDTO/,queryPrams);
     const result = await this.cellService.getUnspentCells(queryPrams);
     return result;
   }
