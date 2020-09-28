@@ -1,44 +1,49 @@
-# Synapse Server
+# CKB Cache Layer
 
 ## Description
 
-Synapse Server for caching cell data from CKB blockchain and providing query service.
+CKB Cache Layer is used as the cache layer of [Synapse extension](https://github.com/rebase-network/synapse-extension), it caches cell and block data from CKB blockchain and providing query service.
 
-## Installation
+
+## Local setup
+If you want to use it for local development with Synapse extension.
+
+1. Start ckb node and miner
+
+https://docs.nervos.org/docs/basics/guides/devchain
+
+2. Start ckb-cache-layer (this project)
 
 ```bash
+git clone git@github.com:rebase-network/ckb-cache-layer.git
 yarn
-```
-
-## Setup
-
-```bash
-# database
-yarn pretypeorm
-yarn build
-yarn db:mig:r
-yarn db:seed
-
-# env
 cp .env.example .env
-
-## Running the app
-
-# development
-yarn start
-
-# watch mode
+yarn pretypeorm
+docker-compose up -d
+yarn db:mig:g
+yarn db:mig:r
 yarn start:dev
-
-# production mode
-yarn start:prod
 ```
 
-## DB commands
+You will see the following logs if you are running successfully:
+```bash
+log:
+updateBlockInfo: 37.671ms
+****************** End block 1 ******************
+updateBlockInfo: 26.848ms
+****************** End block 2 ******************
+```
+
+## Deploy to production
 
 ```bash
-# generate migration
+cp .env.example .env
+yarn pretypeorm
+docker-compose up -d
 yarn db:mig:g
+yarn db:mig:r
+yarn build
+yarn start:prod
 ```
 
 ## API test
@@ -57,9 +62,6 @@ yarn test:e2e
 # test coverage
 yarn test:cov
 ```
-## docker-compose
-Go inside of directory, cd /
-Run this command docker-compose up -d
 
 ## License
 
