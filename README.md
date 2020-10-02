@@ -27,7 +27,6 @@ yarn start:dev
 
 You will see the following logs if you are running successfully:
 ```bash
-log:
 updateBlockInfo: 37.671ms
 ****************** End block 1 ******************
 updateBlockInfo: 26.848ms
