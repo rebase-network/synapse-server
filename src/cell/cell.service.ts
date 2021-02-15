@@ -1,9 +1,7 @@
 /// <reference types="@nervosnetwork/ckb-types" />
 import { Injectable, HttpService } from '@nestjs/common';
-import { map, isEmpty } from 'rxjs/operators';
 import * as _ from 'lodash';
 import * as Types from '../types';
-import { configService } from '../config/config.service';
 import { BlockService } from '../block/block.service';
 import { AddressService } from '../address/address.service';
 import { bigintStrToNum } from '../util/number';
@@ -32,7 +30,7 @@ export class CellService {
     private readonly blockService: BlockService,
     private readonly addressService: AddressService,
     private readonly ckbService: CkbService,
-  ) {}
+  ) { }
 
   private readonly ckb = this.ckbService.getCKB();
 
@@ -97,12 +95,12 @@ export class CellService {
     };
     let typeHashisNullFlg = false;
     if (!_.isEmpty(typeHash)) {
-      if(typeHash === 'isNull'){
+      if (typeHash === 'isNull') {
         typeHashisNullFlg = true;
       } else {
         queryObj.typeHash = typeHash;
       }
-    } 
+    }
 
 
     if (hasData === 'true') {
@@ -382,7 +380,7 @@ export class CellService {
           const output = inputTx.outputs[parseInt(befIndex, 16)];
           const outputData = inputTx.outputsData[parseInt(befIndex, 16)];
           const newInput = this.getReadableCell(output, outputData);
-          if(newInput.typeHash !== null){
+          if (newInput.typeHash !== null) {
             newTx.typeHash = newInput.typeHash;
           }
           newInputs.push(newInput);
@@ -410,25 +408,20 @@ export class CellService {
 
   async getTxDetails(blockTxs, lockHash) {
     for (const tx of blockTxs) {
-      // Object.values(tx.inputs).map(item => item.capacity);
-      // Object.values(tx.outputs).map(item => item.capacity);
       const inSum = tx.inputs.reduce((prev, next) => prev + next.capacity, 0);
       const outSum = tx.outputs.reduce((prev, next) => prev + next.capacity, 0);
       const fee = inSum - outSum;
       tx.fee = fee < 0 ? 0 : fee; // handle cellBase condition
 
-      const flag = false;
       tx.amount = 0;
 
       // inputs outputs filter
-      const inputCells = _.filter(tx.inputs, function(input) {
+      const inputCells = _.filter(tx.inputs, function (input) {
         return input.lockHash === lockHash;
       });
-      console.log(/inputCells/, inputCells);
-      const outputCells = _.filter(tx.outputs, function(output) {
+      const outputCells = _.filter(tx.outputs, function (output) {
         return output.lockHash === lockHash;
       });
-      console.log(/outputCells/, outputCells);
       // 1-
       if (!_.isEmpty(inputCells) && _.isEmpty(outputCells)) {
         tx.income = false; // 出账
