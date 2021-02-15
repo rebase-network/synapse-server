@@ -389,15 +389,14 @@ export class CellService {
 
       newTx.inputs = newInputs;
       const newOutputs = [];
-      for (const output of outputs) {
-        let index = 0;
-        const outputData = outputsData[parseInt(index.toString(), 16)];
+      for (let i = 0; i < outputs.length; i++) {
+        const output = outputs[i];
+        const outputData = outputsData[i];
         const newOutput = this.getReadableCell(output, outputData);
-        if(newOutput.typeHash !== null){
-            newTx.typeHash = newOutput.typeHash;
-          }
+        if (newOutput.typeHash !== null) {
+          newTx.typeHash = newOutput.typeHash;
+        }
         newOutputs.push(newOutput);
-        index++;
       }
 
       newTx.outputs = newOutputs;
